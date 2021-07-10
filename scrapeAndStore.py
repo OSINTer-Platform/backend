@@ -38,7 +38,7 @@ def fromURLToMarkdown(URL, currentProfile, MDFilePath="./"):
 
     return MDFileName
 
-def scrapeUsingProfile(articleList):
+def scrapeUsingProfile(connection, articleList):
     currentProfileName = articleList.pop(0)
     printDebug("\n", False)
     printDebug("Scraping using this profile: " + currentProfileName)
@@ -54,12 +54,25 @@ def scrapeUsingProfile(articleList):
 
     for articleURL in articleList:
         fromURLToMarkdown(articleURL, currentProfile, articlePath)
-        OSINTdatabase.markAsScraped(conn, articleURL)
+        OSINTdatabase.markAsScraped(connection, articleURL)
 
 
 def main():
     # Connecting to the database
     conn = psycopg2.connect("dbname=osinter user=postgres password=" + postgresqlPassword)
+
+    printDebug("Looking for articles that has been written to the database but not scraped...")
+    articleCollection = OSINTdatabase.findUnscrapedArticles(conn, 'articles', OSINTdatabase.requestProfileListFromDB(conn, 'articles'))
+    # Finding the number of articles found in need of being scraped, subtracting one for each list to compensate for each list being one to big as a result of also containing the profile name
+    numberOfArticles = sum ([ len(articleList) for articleList in articleCollection ]) - len(articleCollection)
+
+    if numberOfArticles > 0:
+        printDebug("Found {} articles that has yet to be scraped, scraping them now. Given no interruptions it should take around {} seconds.".format(str(numberOfArticles), str(numberOfArticles * 6)))
+        for articleList in articleCollection:
+            scrapeUsingProfile(conn, articleList)
+        printDebug("Finished scraping articles from database, looking for new articles online")
+    else:
+        printDebug("Found no articles in database left to scrape, looking for new articles online")
 
     printDebug("Scraping articles from frontpages and RSS feeds")
     articleURLLists = OSINTscraping.gatherArticleURLs(getProfiles())
@@ -72,7 +85,7 @@ def main():
 
     # Looping through the list of articles from specific news site in the list of all articles from all sites
     for articleList in articleCollection:
-        scrapeUsingProfile(articleList)
+        scrapeUsingProfile(conn, articleList)
 
     printDebug("\n---\n", False)
 
