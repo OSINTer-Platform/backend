@@ -38,6 +38,24 @@ def fromURLToMarkdown(URL, currentProfile, MDFilePath="./"):
 
     return MDFileName
 
+def scrapeUsingProfile(articleList):
+    currentProfileName = articleList.pop(0)
+    printDebug("\n", False)
+    printDebug("Scraping using this profile: " + currentProfileName)
+
+    # Making sure the folder for storing the markdown files for the articles in exists, will throw exception if not
+    OSINTmisc.createNewsSiteFolder(currentProfileName)
+
+    # Loading the profile for the current website
+    currentProfile = json.loads(getProfiles(currentProfileName))
+
+    # Creating the path to the article for the news site
+    articlePath = "./articles/{}/".format(currentProfileName)
+
+    for articleURL in articleList:
+        fromURLToMarkdown(articleURL, currentProfile, articlePath)
+        OSINTdatabase.markAsScraped(conn, articleURL)
+
 
 def main():
     # Connecting to the database
@@ -54,21 +72,7 @@ def main():
 
     # Looping through the list of articles from specific news site in the list of all articles from all sites
     for articleList in articleCollection:
-        currentProfileName = articleList.pop(0)
-        printDebug("Scraping using this profile: " + currentProfileName)
-
-        # Making sure the folder for storing the markdown files for the articles in exists, will throw exception if not
-        OSINTmisc.createNewsSiteFolder(currentProfileName)
-
-        # Loading the profile for the current website
-        currentProfile = json.loads(getProfiles(currentProfileName))
-
-        # Creating the path to the article for the news site
-        articlePath = "./articles/{}/".format(currentProfileName)
-
-        for articleURL in articleList:
-            fromURLToMarkdown(articleURL, currentProfile, articlePath)
-            OSINTdatabase.markAsScraped(conn, articleURL)
+        scrapeUsingProfile(articleList)
 
     printDebug("\n---\n", False)
 
