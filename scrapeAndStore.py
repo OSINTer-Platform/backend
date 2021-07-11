@@ -75,9 +75,21 @@ def main():
         printDebug("Found no articles in database left to scrape, looking for new articles online")
 
     printDebug("Scraping articles from frontpages and RSS feeds")
-    articleURLLists = OSINTscraping.gatherArticleURLs(getProfiles())
+    articleURLCollection = OSINTscraping.gatherArticleURLs(getProfiles())
+
+    printDebug("Removing those articles that have already been stored in the database")
+    filteredArticleURLCollection = OSINTdatabase.filterArticleURLList(conn, 'articles', articleURLCollection)
+
+    numberOfArticleAfterFilter = sum ([ len(filteredArticleURLList) for filteredArticleURLList in filteredArticleURLCollection ]) - len(filteredArticleURLCollection)
+
+    if numberOfArticleAfterFilter == 0:
+        printDebug("All articles seems to have already been stored, exiting.")
+        return
+    else:
+        printDebug("Found {} articles left to scrape, will begin that process now".format(str(numberOfArticleAfterFilter)))
+
     printDebug("Collecting the OG tags")
-    OGTagCollection = OSINTtags.collectAllOGTags(articleURLLists)
+    OGTagCollection = OSINTtags.collectAllOGTags(filteredArticleURLCollection)
 
     printDebug("Writting the OG tags to the DB")
     # Writting the OG tags to the database and finding those that haven't already been scraped
