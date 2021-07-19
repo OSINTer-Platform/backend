@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 
 # The name of your obsidian vault
-obsidianVault = ""
+obsidianVault = "Testing"
 # The absolute path to your obsidian vault
-vaultPath = ""
+vaultPath = "/home/bertmad/Obsidian/Testing/"
 
 
 import os
@@ -42,12 +42,16 @@ def handleSingleArticle(vaultName, vaultPath, profileName, articleSource, articl
     os.rename(Path(MDFileName).resolve(), Path(vaultPath + MDFileName))
 
 
-profile = input("Which profile do you want to test? ")
-articleURLLists = OSINTscraping.gatherArticleURLs([getProfiles(profile)])
+def main():
+    profile = input("Which profile do you want to test? ")
+    articleURLLists = OSINTscraping.gatherArticleURLs([getProfiles(profile)])
 
-for URLlist in articleURLLists:
-    currentProfile = URLlist.pop(0)
-    for url in URLlist:
-        OSINTmisc.printDebug("Scraping: " + url)
-        articleSource = OSINTscraping.scrapePageDynamic(url)
-        handleSingleArticle(obsidianVault, vaultPath, currentProfile, articleSource, url)
+    for URLlist in articleURLLists:
+        currentProfile = URLlist.pop(0)
+        for url in URLlist:
+            OSINTmisc.printDebug("Scraping: " + url)
+            articleSource = OSINTscraping.scrapePageDynamic(url)
+            handleSingleArticle(obsidianVault, vaultPath, currentProfile, articleSource, url)
+
+if __name__ == "__main__":
+    main()

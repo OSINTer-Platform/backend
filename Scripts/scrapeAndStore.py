@@ -101,4 +101,5 @@ def main():
 
     printDebug("\n---\n", False)
 
-main()
+if __name__ == "__main__":
+    main()
