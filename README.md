@@ -49,7 +49,12 @@ instructions have a look in the next section.
    Information on how to do this can be found in the [Arch
    wiki](https://wiki.archlinux.org/title/PostgreSQL)
 7. Modify the variable "postgresqlPassword" in both the
-   "initiateScrapingBackend.py" and "scrapeAndStore.py" script to the password
-   you set for the postgres user in the last point.
+   "initiateScrapingBackend.py" and "scrapeAndStore.py" script in the script
+   folder to the password you set for the postgres user in the last point.
 8. Now simply run the "initiateScrapingBackend.py" (only needed the first time)
-   and then the "scrapeAndStore.py" script to start the scraping.
+   by running main.py, and typing the number corrensponding to that script and
+   then the "scrapeAndStore.py" script to start the scraping by the same method.
+9. The script can also be run without using the interactive option from main.py,
+   which can be incredibly useful if running "scrapeAndStore.py" autonomously
+   from something like cron. This can simply be done using the command "python
+   -m Scripts.scrapeAndStore".
