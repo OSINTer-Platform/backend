@@ -16,10 +16,12 @@ try:
     scriptNumber = int(input("Write a number: "))
 except:
     print("It doesn't look like you entered a number.")
+    exit()
 
 try:
-    test = scripts[scriptNumber]
+    eval("scripts.{}.main()".format(backendScripts[scriptNumber]))
+except IndexError:
+    print("The number you entered doesn't correspond to a script, it should be between 0 and {}".format(len(backendScripts) - 1))
 except:
-    print("The number you entered doesn't correspond to a script, it should be between 1 and {}".format(len(backendScripts)))
+    print("Something went wrong as your input wasn't understod, please try again")
 
-eval("scripts.{}.main()".format(backendScripts[scriptNumber]))
