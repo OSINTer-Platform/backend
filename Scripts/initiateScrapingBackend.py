@@ -20,6 +20,7 @@ def createFolder(folderName, purpose):
 
 def main():
     createFolder('articles', 'storing the markdown files representing the articles')
+    createFolder('logs', 'storing the logs')
     
     # Connecting to the database
     conn = psycopg2.connect("user=postgres password=" + postgresqlPassword)
