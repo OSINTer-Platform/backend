@@ -11,12 +11,15 @@ from OSINTmodules import OSINTdatabase
 
 postgresqlPassword = ""
 
-def main():
-    if not os.path.isdir(Path("./articles")):
+def createFolder(folderName, purpose):
+    if not os.path.isdir(Path("./" + folderName)):
         try:
-            os.mkdir(Path("./articles"))
+            os.mkdir(Path("./" + folderName))
         except:
-            raise Exception("The folder needed for creating storing the markdown files representing the articles couldn't be created, exiting")
+            raise Exception("The folder needed for {} couldn't be created, exiting".format(purpose))
+
+def main():
+    createFolder('articles', 'storing the markdown files representing the articles')
     
     # Connecting to the database
     conn = psycopg2.connect("user=postgres password=" + postgresqlPassword)
