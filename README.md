@@ -33,28 +33,25 @@ instructions have a look in the next section.
    [OSINTprofiles](https://github.com/Combitech-DK/OSINTprofiles) repo, so that
    you get a folder structure with "OSINTbackend" as the root with the two
    directories "OSINTmodules" and "OSINTprofiles" inside.
-4. Download the [latest
-   geckodriver](https://github.com/mozilla/geckodriver/releases), extract it and
-   put it in the "OSINTbackend" directory.
-5. Install the depencies specified [here, in the the OSINT'er
+4. Install the depencies specified [here, in the the OSINT'er
    repo](https://github.com/Combitech-DK/OSINTer/blob/master/requirements.txt).
    Most of them can be installed using pip, but others (especially psycopg2) may
    give of an error during an attempt at installing it. If that's the case, you
    will have to install the failed packages from your distrobutions own
    repositories. On both Arch most of the packages can be found under
    "python-[packageName]" and on Debian under "python3-[packageName]"
-6. Setup a postgresql database, change the authentication of the default
+5. Setup a postgresql database, change the authentication of the default
    postgres user in the postgresql database to password based authentication and
    change to password to something you can remember (or simply write it down).
    Information on how to do this can be found in the [Arch
    wiki](https://wiki.archlinux.org/title/PostgreSQL)
-7. Modify the variable "postgresqlPassword" in both the
+6. Modify the variable "postgresqlPassword" in both the
    "initiateScrapingBackend.py" and "scrapeAndStore.py" script in the script
    folder to the password you set for the postgres user in the last point.
-8. Now simply run the "initiateScrapingBackend.py" (only needed the first time)
+7. Now simply run the "initiateScrapingBackend.py" (only needed the first time)
    by running main.py, and typing the number corrensponding to that script and
    then the "scrapeAndStore.py" script to start the scraping by the same method.
-9. The script can also be run without using the interactive option from main.py,
+8. The script can also be run without using the interactive option from main.py,
    which can be incredibly useful if running "scrapeAndStore.py" autonomously
    from something like cron. This can simply be done using the command "python
    -m Scripts.scrapeAndStore".
