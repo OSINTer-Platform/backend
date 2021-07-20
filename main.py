@@ -5,7 +5,7 @@ debugMessages = True
 from scripts import *
 import scripts
 
-backendScripts = scripts.__all__
+backendScripts = sorted(scripts.__all__)
 
 print("Which program do you want to run?")
 
