@@ -27,8 +27,10 @@ def createFolder(folderName, purpose):
         try:
             os.mkdir(Path("./" + folderName))
         except:
+            # This shoudln't ever be reached, as it would imply that the folder doesn't exist, but the script also is unable to create it. Could possibly be missing read permissions if the scripts catches this exception
             raise Exception("The folder needed for {} couldn't be created, exiting".format(purpose))
 
+# Mozilla will have an api endpoint giving a lot of information about the latest releases for the geckodriver, from which the url for the linux 64 bit has to be extracted
 def extractDriverURL():
     driverDetails = json.loads(requests.get("https://api.github.com/repos/mozilla/geckodriver/releases/latest").text)
 
@@ -36,6 +38,7 @@ def extractDriverURL():
         if platformRelease['name'].endswith("linux64.tar.gz"):
             return platformRelease['browser_download_url']
 
+# Downloading and extracting the .tar.gz file the geckodriver is stored in into the tools directory
 def downloadDriver(driverURL):
     driverContents = requests.get(driverURL, stream=True)
     with tarfile.open(fileobj=driverContents.raw, mode='r|gz') as driverFile:
