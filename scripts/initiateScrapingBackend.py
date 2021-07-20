@@ -6,6 +6,10 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 import os
 from pathlib import Path
+import requests
+import json
+# For decompressing the geckodriver that comes compressed in the .tar.gz format when downloading it
+import tarfile
 
 from OSINTmodules import OSINTdatabase
 
@@ -18,7 +22,22 @@ def createFolder(folderName, purpose):
         except:
             raise Exception("The folder needed for {} couldn't be created, exiting".format(purpose))
 
+def extractDriverURL():
+    driverDetails = json.loads(requests.get("https://api.github.com/repos/mozilla/geckodriver/releases/latest").text)
+
+    for platformRelease in driverDetails['assets']:
+        if platformRelease['name'].endswith("linux64.tar.gz"):
+            return platformRelease['browser_download_url']
+
+def downloadDriver(driverURL):
+    driverContents = requests.get(driverURL, stream=True)
+    with tarfile.open(fileobj=driverContents.raw, mode='r|gz') as driverFile:
+        driverFile.extractall(path=Path("./tools/"))
+
 def main():
+
+    downloadDriver(extractDriverURL())
+
     createFolder('articles', 'storing the markdown files representing the articles')
     createFolder('logs', 'storing the logs')
     
