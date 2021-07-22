@@ -59,7 +59,7 @@ def scrapeUsingProfile(connection, articleList):
 
 def main():
     # Connecting to the database
-    conn = psycopg2.connect("dbname=osinter user=postgres password=" + postgresqlPassword)
+    conn = psycopg2.connect("dbname=osinter user=writer password=" + postgresqlPassword)
 
     printDebug("Looking for articles that has been written to the database but not scraped...")
     articleCollection = OSINTdatabase.findUnscrapedArticles(conn, 'articles', OSINTdatabase.requestProfileListFromDB(conn, 'articles'))
