@@ -80,8 +80,17 @@ def main():
 
     conn.close()
 
+    printDebug("Creating the needed users in the new database.")
+
     # Connecting to the newly created database
     conn = psycopg2.connect("dbname=osinter user=postgres")
+
+    # Create the new users, and switch the connection to the new super user in the process
+    adminPassword, writerPassword, conn = OSINTdatabase.initiateUsers(conn)
+
+    printDebug("Writting the credentials for the new users to disk")
+
+    saveCredentials(adminPassword, writerPassword)
 
     printDebug("Creating the needed \"article\" table...")
     # Making sure the database has gotten the needed table(s)
