@@ -65,7 +65,7 @@ def main():
     printDebug("Creating the \"osinter\" postgresql database...")
 
     # Connecting to the database
-    conn = psycopg2.connect("user=postgres password=" + postgresqlPassword)
+    conn = psycopg2.connect("user=postgres")
 
     # Needed ass create database cannot be run within transaction
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
@@ -81,7 +81,7 @@ def main():
     conn.close()
 
     # Connecting to the newly created database
-    conn = psycopg2.connect("dbname=osinter user=postgres password=" + postgresqlPassword)
+    conn = psycopg2.connect("dbname=osinter user=postgres")
 
     printDebug("Creating the needed \"article\" table...")
     # Making sure the database has gotten the needed table(s)
