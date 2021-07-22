@@ -22,6 +22,4 @@ try:
     eval("scripts.{}.main()".format(backendScripts[scriptNumber]))
 except IndexError:
     print("The number you entered doesn't correspond to a script, it should be between 0 and {}".format(len(backendScripts) - 1))
-except:
-    print("Something went wrong as your input wasn't understod, please try again")
 
