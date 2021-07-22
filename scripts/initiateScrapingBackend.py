@@ -44,12 +44,9 @@ def downloadDriver(driverURL):
     with tarfile.open(fileobj=driverContents.raw, mode='r|gz') as driverFile:
         driverFile.extractall(path=Path("./tools/"))
 
-def saveCredentials(adminPassword, writerPassword):
-    with os.fdopen(os.open(Path("./credentials/adminPassword"), os.O_WRONLY | os.O_CREAT, 0o000), 'w') as file:
-        file.write(adminPassword)
-
-    with os.fdopen(os.open(Path("./credentials/writerPassword"), os.O_WRONLY | os.O_CREAT, 0o400), 'w') as file:
-        file.write(writerPassword)
+def saveCredential(fileName, filePerms, password):
+    with os.fdopen(os.open(Path("./credentials/{}.password".format(fileName)), os.O_WRONLY | os.O_CREAT, int(filePerms)), 'w') as file:
+        file.write(password)
 
 def main():
 
@@ -80,17 +77,17 @@ def main():
 
     conn.close()
 
-    printDebug("Creating the needed users in the new database.")
+    printDebug("Creating a new superuser in the new database.")
 
     # Connecting to the newly created database
     conn = psycopg2.connect("dbname=osinter user=postgres")
 
     # Create the new users, and switch the connection to the new super user in the process
-    adminPassword, writerPassword, conn = OSINTdatabase.initiateUsers(conn)
+    adminPassword, conn = OSINTdatabase.initiateAdmin(conn)
 
-    printDebug("Writting the credentials for the new users to disk")
+    printDebug("Writing the superuser credential to disk")
 
-    saveCredentials(adminPassword, writerPassword)
+    saveCredential("admin", 0o000, adminPassword)
 
     printDebug("Creating the needed \"article\" table...")
     # Making sure the database has gotten the needed table(s)
@@ -98,6 +95,14 @@ def main():
         printDebug("The \"article\" table has been created.")
     else:
         printDebug("The \"article\" table already exists, skipping.")
+
+    printDebug("Creating the other needed users")
+
+    writerPassword = OSINTdatabase.initiateUsers(conn)
+
+    printDebug("Writing the password for the writer user to disk")
+
+    saveCredential("writer", 0o400, writerPassword)
 
 if __name__ == "__main__":
     main()
