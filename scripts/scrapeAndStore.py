@@ -6,13 +6,14 @@ import psycopg2
 # Used for loading the profile
 import json
 
+# Used for reading from file
+from pathlib import Path
+
 debugMessages = True
 
 from OSINTmodules.OSINTprofiles import getProfiles
 from OSINTmodules.OSINTmisc import printDebug
 from OSINTmodules import *
-
-postgresqlPassword = ""
 
 def fromURLToMarkdown(URL, currentProfile, MDFilePath="./"):
 
@@ -58,6 +59,9 @@ def scrapeUsingProfile(connection, articleList):
 
 
 def main():
+    # Get the password for the writer account
+    postgresqlPassword = Path("./credentials/writer.password").read_text()
+
     # Connecting to the database
     conn = psycopg2.connect("dbname=osinter user=writer password=" + postgresqlPassword)
 
