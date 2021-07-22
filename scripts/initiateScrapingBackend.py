@@ -44,6 +44,13 @@ def downloadDriver(driverURL):
     with tarfile.open(fileobj=driverContents.raw, mode='r|gz') as driverFile:
         driverFile.extractall(path=Path("./tools/"))
 
+def saveCredentials(adminPassword, writerPassword):
+    with os.fdopen(os.open(Path("./credentials/adminPassword"), os.O_WRONLY | os.O_CREAT, 0o000), 'w') as file:
+        file.write(adminPassword)
+
+    with os.fdopen(os.open(Path("./credentials/writerPassword"), os.O_WRONLY | os.O_CREAT, 0o400), 'w') as file:
+        file.write(writerPassword)
+
 def main():
 
     printDebug("Downloading and extracting the geckodriver...")
@@ -52,7 +59,7 @@ def main():
 
     printDebug("Creating the folders for storing the scraped articles and logs...")
 
-    for folder in ['articles', 'logs']:
+    for folder in ['articles', 'logs', 'credentials']:
         createFolder(folder)
 
     printDebug("Creating the \"osinter\" postgresql database...")
