@@ -22,13 +22,13 @@ from OSINTmodules.OSINTmisc import printDebug
 
 postgresqlPassword = ""
 
-def createFolder(folderName, purpose):
+def createFolder(folderName):
     if not os.path.isdir(Path("./" + folderName)):
         try:
             os.mkdir(Path("./" + folderName))
         except:
             # This shoudln't ever be reached, as it would imply that the folder doesn't exist, but the script also is unable to create it. Could possibly be missing read permissions if the scripts catches this exception
-            raise Exception("The folder needed for {} couldn't be created, exiting".format(purpose))
+            raise Exception("The folder {} couldn't be created, exiting".format(folderName))
 
 # Mozilla will have an api endpoint giving a lot of information about the latest releases for the geckodriver, from which the url for the linux 64 bit has to be extracted
 def extractDriverURL():
@@ -52,8 +52,8 @@ def main():
 
     printDebug("Creating the folders for storing the scraped articles and logs...")
 
-    createFolder('articles', 'storing the markdown files representing the articles')
-    createFolder('logs', 'storing the logs')
+    for folder in ['articles', 'logs']:
+        createFolder(folder)
 
     printDebug("Creating the \"osinter\" postgresql database...")
 
