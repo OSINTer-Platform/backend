@@ -55,7 +55,7 @@ def scrapeUsingProfile(connection, articleList):
 
     for articleURL in articleList:
         fromURLToMarkdown(articleURL, currentProfile, articlePath)
-        OSINTdatabase.markAsScraped(connection, articleURL)
+        OSINTdatabase.markAsScraped(connection, articleURL, 'articles')
 
 
 def main():
