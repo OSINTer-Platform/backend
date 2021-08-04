@@ -54,8 +54,8 @@ def scrapeUsingProfile(connection, articleList):
     articlePath = "./articles/{}/".format(currentProfileName)
 
     for articleURL in articleList:
-        fromURLToMarkdown(articleURL, currentProfile, articlePath)
-        OSINTdatabase.markAsScraped(connection, articleURL, 'articles')
+        fileName = fromURLToMarkdown(articleURL, currentProfile, articlePath)
+        OSINTdatabase.markAsScraped(connection, articleURL, '{}/{}'.format(currentProfileName, fileName), 'articles')
 
 
 def main():
