@@ -57,15 +57,7 @@ def scrapeUsingProfile(connection, articleList):
         fileName = fromURLToMarkdown(articleURL, currentProfile, articlePath)
         OSINTdatabase.markAsScraped(connection, articleURL, '{}/{}'.format(currentProfileName, fileName), 'articles')
 
-
-def main():
-    # Get the password for the writer account
-    postgresqlPassword = Path("./credentials/writer.password").read_text()
-
-    # Connecting to the database
-    conn = psycopg2.connect("dbname=osinter user=writer password=" + postgresqlPassword)
-
-    printDebug("Looking for articles that has been written to the database but not scraped...")
+def findNonScrapedArticles(conn):
     articleCollection = OSINTdatabase.findUnscrapedArticles(conn, 'articles', OSINTdatabase.requestProfileListFromDB(conn, 'articles'))
     # Finding the number of articles found in need of being scraped, subtracting one for each list to compensate for each list being one to big as a result of also containing the profile name
     numberOfArticles = sum ([ len(articleList) for articleList in articleCollection ]) - len(articleCollection)
@@ -77,6 +69,23 @@ def main():
         printDebug("Finished scraping articles from database, looking for new articles online")
     else:
         printDebug("Found no articles in database left to scrape, looking for new articles online")
+
+def main():
+    # Get the password for the writer account
+    postgresqlPassword = Path("./credentials/writer.password").read_text()
+
+    # Connecting to the database
+    conn = psycopg2.connect("dbname=osinter user=writer password=" + postgresqlPassword)
+
+    printDebug("Looking for articles that has been written to the database but not scraped...")
+    try:
+        findNonScrapedArticles(conn)
+    except Exception as e:
+        printDebug("Error: Something went wrong when trying to fully scrape articles stored in the DB. Reconnecting to DB. Error: \n\n{}---\n\n".format(str(e)))
+        # When encountering an error, it is not always safe to assume that the connection closed properly, so this will close if it isn't already and then connect to the DB again.
+        if conn is not None:
+            conn.close()
+        conn = psycopg2.connect("dbname=osinter user=writer password=" + postgresqlPassword)
 
     printDebug("Scraping articles from frontpages and RSS feeds")
     articleURLCollection = OSINTscraping.gatherArticleURLs(getProfiles())
