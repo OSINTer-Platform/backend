@@ -89,12 +89,19 @@ def main():
 
     saveCredential("admin", 0o000, adminPassword)
 
-    printDebug("Creating the needed \"article\" table...")
     # Making sure the database has gotten the needed table(s)
+    printDebug("Creating the needed \"article\" table...")
     if OSINTdatabase.initiateArticleTable(conn):
         printDebug("The \"article\" table has been created.")
     else:
         printDebug("The \"article\" table already exists, skipping.")
+
+    printDebug("Creating the needed \"osinter_users\" table...")
+    if OSINTdatabase.initiateUserTable(conn):
+        printDebug("The \"osinter_users\" table has been created.")
+    else:
+        printDebug("The \"osinter_users\" table already exists, skipping.")
+
 
     printDebug("Creating the other needed users")
 
