@@ -25,7 +25,7 @@ postgresqlPassword = ""
 def createFolder(folderName):
     if not os.path.isdir(Path("./" + folderName)):
         try:
-            os.mkdir(Path("./" + folderName))
+            os.mkdir(Path("./" + folderName), mode=0o750)
         except:
             # This shoudln't ever be reached, as it would imply that the folder doesn't exist, but the script also is unable to create it. Could possibly be missing read permissions if the scripts catches this exception
             raise Exception("The folder {} couldn't be created, exiting".format(folderName))
