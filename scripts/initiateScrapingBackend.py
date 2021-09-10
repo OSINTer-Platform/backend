@@ -105,12 +105,13 @@ def main():
 
     printDebug("Creating the other needed users")
 
-    userAndPasswords = OSINTdatabase.initiateUsers(conn)
+    usernamePasswordAndPerms = OSINTdatabase.initiateUsers(conn)
 
     printDebug("Writing the password for new users to the disk")
 
-    for user in userAndPasswords:
-        saveCredential(user, 0o400, userAndPasswords[user])
+    print(usernamePasswordAndPerms)
+    for user in usernamePasswordAndPerms:
+        saveCredential(user, usernamePasswordAndPerms[user]["perms"], usernamePasswordAndPerms[user]["password"])
 
 if __name__ == "__main__":
     main()
