@@ -25,6 +25,9 @@ psycopg2-binary
 # For hosting the webserver
 Flask
 
+# For handling access control
+flask_login
+
 # For serving the MD files as html
 markdown
 
@@ -33,3 +36,6 @@ python-dateutil
 
 # The WSGI server for the webserver
 gunicorn
+
+# Library for hashing password securly
+argon2-cffi
