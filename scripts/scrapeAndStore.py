@@ -9,25 +9,28 @@ import json
 # Used for reading from file
 from pathlib import Path
 
+from bs4 import BeautifulSoup as bs
+
 debugMessages = True
 
 from OSINTmodules.OSINTprofiles import getProfiles
 from OSINTmodules.OSINTmisc import printDebug
 from OSINTmodules import *
 
-def fromURLToMarkdown(URL, currentProfile, MDFilePath="./"):
+def fromURLToMarkdown(articleMetaTags, currentProfile, MDFilePath="./"):
 
     printDebug("\n", False)
     # Scrape the whole article source based on how the profile says
     if currentProfile['scraping']['type'] == "no-action":
-        printDebug("No-action scraping: " + URL)
-        articleSource = OSINTscraping.scrapePageDynamic(URL)
+        printDebug("No-action scraping: " + articleMetaTags['url'])
+        articleSource = OSINTscraping.scrapePageDynamic(articleMetaTags['url'])
     else:
         raise Exception(profile['source']['name'] + " apparently didn't have a specified way of scraping the articles autonomously, exiting.")
 
     printDebug("Extracting the details")
+    articleSoup = bs(articleSource, 'html.parser')
     # Gather the needed information from the article
-    articleDetails, articleContent, articleClearText = OSINTextract.extractAllDetails(currentProfile, articleSource)
+    articleContent, articleClearText = OSINTextract.extractArticleContent(currentProfile['scraping']['content'], articleSoup)
 
     printDebug("Generating tags")
     # Generate the tags
@@ -35,7 +38,7 @@ def fromURLToMarkdown(URL, currentProfile, MDFilePath="./"):
 
     printDebug("Creating the markdown file")
     # Create the markdown file
-    MDFileName = OSINTfiles.createMDFile(currentProfile['source']['name'], URL, articleDetails, articleContent, articleTags, MDFilePath)
+    MDFileName = OSINTfiles.createMDFile(currentProfile['source']['name'], articleMetaTags, articleContent, articleTags, MDFilePath)
 
     return MDFileName
 
@@ -53,9 +56,9 @@ def scrapeUsingProfile(connection, articleList):
     # Creating the path to the article for the news site
     articlePath = "./articles/{}/".format(currentProfileName)
 
-    for articleURL in articleList:
-        fileName = fromURLToMarkdown(articleURL, currentProfile, articlePath)
-        OSINTdatabase.markAsScraped(connection, articleURL, '{}/{}'.format(currentProfileName, fileName), 'articles')
+    for articleTags in articleList:
+        fileName = fromURLToMarkdown(articleTags, currentProfile, articlePath)
+        OSINTdatabase.markAsScraped(connection, articleTags['url'], '{}/{}'.format(currentProfileName, fileName), 'articles')
 
 def findNonScrapedArticles(conn):
     articleCollection = OSINTdatabase.findUnscrapedArticles(conn, 'articles', OSINTdatabase.requestProfileListFromDB(conn, 'articles'))
