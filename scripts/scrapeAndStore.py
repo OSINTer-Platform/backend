@@ -9,6 +9,8 @@ import json
 # Used for reading from file
 from pathlib import Path
 
+import os
+
 from bs4 import BeautifulSoup as bs
 
 debugMessages = True
@@ -37,9 +39,14 @@ def fromURLToMarkdown(articleMetaTags, currentProfile, MDFilePath="./"):
     articleTags = OSINTtext.generateTags(OSINTtext.cleanText(articleClearText))
     intObjects = OSINTtext.locateObjectsOfInterrest(articleClearText)
 
+    if os.path.isfile(Path("./tools/keywords.txt")):
+        manualTags = OSINTtext.locateKeywords(OSINTmisc.decodeKeywordsFile(Path("./tools/keywords.txt")), articleClearText)
+    else:
+        manualTags = []
+
     printDebug("Creating the markdown file")
     # Create the markdown file
-    MDFileName = OSINTfiles.createMDFile(currentProfile['source']['name'], articleMetaTags, articleContent, articleTags, MDFilePath=MDFilePath, intObjects=intObjects)
+    MDFileName = OSINTfiles.createMDFile(currentProfile['source']['name'], articleMetaTags, articleContent, articleTags, MDFilePath=MDFilePath, intObjects=intObjects, manualTags=manualTags)
 
     return MDFileName
 
