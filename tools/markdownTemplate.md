@@ -5,6 +5,7 @@
 $information
 
 ## Article:
+$articleImage
 $articleContent
 
 #### Tags:
