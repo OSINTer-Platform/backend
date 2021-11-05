@@ -10,3 +10,4 @@ $articleContent
 
 #### Tags:
 $tags
+$intObjects

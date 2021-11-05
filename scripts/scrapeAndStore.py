@@ -32,13 +32,14 @@ def fromURLToMarkdown(articleMetaTags, currentProfile, MDFilePath="./"):
     # Gather the needed information from the article
     articleContent, articleClearText = OSINTextract.extractArticleContent(currentProfile['scraping']['content'], articleSoup)
 
-    printDebug("Generating tags")
+    printDebug("Generating tags and extracting objects of interrest")
     # Generate the tags
     articleTags = OSINTtext.generateTags(OSINTtext.cleanText(articleClearText))
+    intObjects = OSINTtext.locateObjectsOfInterrest(articleClearText)
 
     printDebug("Creating the markdown file")
     # Create the markdown file
-    MDFileName = OSINTfiles.createMDFile(currentProfile['source']['name'], articleMetaTags, articleContent, articleTags, MDFilePath)
+    MDFileName = OSINTfiles.createMDFile(currentProfile['source']['name'], articleMetaTags, articleContent, articleTags, MDFilePath=MDFilePath, intObjects=intObjects)
 
     return MDFileName
 
