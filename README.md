@@ -1,6 +1,6 @@
 # OSINTbackend
 
-![OSINTer](https://github.com/bertmad3400/OSINTer/blob/master/logo.png)
+![OSINTer](https://raw.githubusercontent.com/bertmad3400/OSINTer/master/logo.png)
 
 ## What is the purpose of OSINTbackend?
 The OSINTbackend repo is a part of the whole OSINT'er project which is aiming
@@ -35,7 +35,7 @@ it if found.
 This works by OSINTer having a list of lists of words to look for. One of these
 lists inside the main list could look something like this:
 
-[ cobalt, strike ]
+```[ cobalt, strike ]```
 
 OSINTer then first looks for the word cobalt in the article, and if found, it
 then looks for the word strike withing a certain proximity of the location of
@@ -50,7 +50,7 @@ you will first have to create a file inside OSINTbackend/tools called
 "keywords.txt" (so the full path is ./OSINTbackend/tools/keywords.txt). In here
 you can then specify the custom tags in this format:
 
-(keyword),(keyword),(keyword);(tag);[proximity]
+```(keyword),(keyword),(keyword);(tag);[proximity]```
 
 The keywords here are the words to look for in the article in a comma-seperated
 (so in the previous example that was cobalt and strike). The "tag" is then what
@@ -64,17 +64,19 @@ characthers to the left of it for the word strike).
 This means that if you wanted to follow through with the previous example you
 would specify it like this:
 
-cobalt,strike;Cobalt-Strike
+```cobalt,strike;Cobalt-Strike```
 
 Alternativly you could also specify a smaller proximity, as Cobalt-Strike is a
 name, that isn't written with words or many spaces in between, which would look
 like this:
 
-cobalt,strike;Cobalt-Strike;10
+```cobalt,strike;Cobalt-Strike;10```
 
 Now, if you wanted to add more tags, you would simply do that on a new line, so
 it would look like this:
 
+```
 cobalt,strike;Cobalt-Strike;10
 windows,may,2021;21H1;60
 revil;ransomware
+```
