@@ -70,14 +70,20 @@ def scrapeUsingProfile(articleList, profileName, articlePath="", connection=None
             OSINTdatabase.markAsScraped(connection, articleTags['url'], '{}/{}'.format(profileName, fileName), 'articles')
 
 def findNonScrapedArticles(conn):
-    articleCollection = OSINTdatabase.findUnscrapedArticles(conn, 'articles', OSINTdatabase.requestProfileListFromDB(conn, 'articles'))
-    # Finding the number of articles found in need of being scraped, subtracting one for each list to compensate for each list being one to big as a result of also containing the profile name
-    numberOfArticles = sum ([ len(articleList) for articleList in articleCollection ]) - len(articleCollection)
+
+    profileList = OSINTdatabase.requestProfileListFromDB(conn, 'articles')
+    articleCollection = OSINTdatabase.requestOGTagsFromDB(conn, "articles", profileList, limit=100, scraped=False)
+    orderedArticleCollection = { profileName : [] for profileName in profileList }
+
+    for articleDict in articleCollection:
+        orderedArticleCollection[articleDict["profile"]].append(articleDict)
+
+    numberOfArticles = len(articleCollection)
 
     if numberOfArticles > 0:
         printDebug("Found {} articles that has yet to be scraped, scraping them now. Given no interruptions it should take around {} seconds.".format(str(numberOfArticles), str(numberOfArticles * 6)))
-        for articleList in articleCollection:
-            scrapeUsingProfile(articleList, connection=conn)
+        for profileName in orderedArticleCollection:
+            scrapeUsingProfile(orderedArticleCollection[profileName], profileName, connection=conn)
         printDebug("Finished scraping articles from database, looking for new articles online")
     else:
         printDebug("Found no articles in database left to scrape, looking for new articles online")
