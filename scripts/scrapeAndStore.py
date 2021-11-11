@@ -50,7 +50,7 @@ def fromURLToMarkdown(articleMetaTags, currentProfile, MDFilePath="./"):
 
     return MDFileName
 
-def scrapeUsingProfile(connection, articleList):
+def scrapeUsingProfile(articleList, articlePath="", connection=None):
     currentProfileName = articleList.pop(0)
     printDebug("\n", False)
     printDebug("Scraping using this profile: " + currentProfileName)
@@ -61,12 +61,14 @@ def scrapeUsingProfile(connection, articleList):
     # Loading the profile for the current website
     currentProfile = json.loads(getProfiles(currentProfileName))
 
-    # Creating the path to the article for the news site
-    articlePath = "./articles/{}/".format(currentProfileName)
+    if articlePath == "":
+        # Creating the path to the article for the news site
+        articlePath = "./articles/{}/".format(currentProfileName)
 
     for articleTags in articleList:
-        fileName = fromURLToMarkdown(articleTags, currentProfile, articlePath)
-        OSINTdatabase.markAsScraped(connection, articleTags['url'], '{}/{}'.format(currentProfileName, fileName), 'articles')
+        fileName = fromURLToMarkdown(articleTags, currentProfile, MDFilePath = articlePath)
+        if connection != None:
+            OSINTdatabase.markAsScraped(connection, articleTags['url'], '{}/{}'.format(currentProfileName, fileName), 'articles')
 
 def findNonScrapedArticles(conn):
     articleCollection = OSINTdatabase.findUnscrapedArticles(conn, 'articles', OSINTdatabase.requestProfileListFromDB(conn, 'articles'))
@@ -76,7 +78,7 @@ def findNonScrapedArticles(conn):
     if numberOfArticles > 0:
         printDebug("Found {} articles that has yet to be scraped, scraping them now. Given no interruptions it should take around {} seconds.".format(str(numberOfArticles), str(numberOfArticles * 6)))
         for articleList in articleCollection:
-            scrapeUsingProfile(conn, articleList)
+            scrapeUsingProfile(articleList, connection=conn)
         printDebug("Finished scraping articles from database, looking for new articles online")
     else:
         printDebug("Found no articles in database left to scrape, looking for new articles online")
@@ -121,7 +123,7 @@ def main():
 
     # Looping through the list of articles from specific news site in the list of all articles from all sites
     for articleList in articleCollection:
-        scrapeUsingProfile(conn, articleList)
+        scrapeUsingProfile(articleList, connection=conn)
 
     printDebug("\n---\n", False)
 
