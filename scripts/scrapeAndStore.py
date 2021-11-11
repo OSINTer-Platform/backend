@@ -50,25 +50,24 @@ def fromURLToMarkdown(articleMetaTags, currentProfile, MDFilePath="./"):
 
     return MDFileName
 
-def scrapeUsingProfile(articleList, articlePath="", connection=None):
-    currentProfileName = articleList.pop(0)
+def scrapeUsingProfile(articleList, profileName, articlePath="", connection=None):
     printDebug("\n", False)
-    printDebug("Scraping using this profile: " + currentProfileName)
+    printDebug("Scraping using this profile: " + profileName)
 
     # Making sure the folder for storing the markdown files for the articles in exists, will throw exception if not
-    OSINTmisc.createNewsSiteFolder(currentProfileName)
+    OSINTmisc.createNewsSiteFolder(profileName)
 
     # Loading the profile for the current website
-    currentProfile = json.loads(getProfiles(currentProfileName))
+    currentProfile = json.loads(getProfiles(profileName))
 
     if articlePath == "":
         # Creating the path to the article for the news site
-        articlePath = "./articles/{}/".format(currentProfileName)
+        articlePath = "./articles/{}/".format(profileName)
 
     for articleTags in articleList:
         fileName = fromURLToMarkdown(articleTags, currentProfile, MDFilePath = articlePath)
         if connection != None:
-            OSINTdatabase.markAsScraped(connection, articleTags['url'], '{}/{}'.format(currentProfileName, fileName), 'articles')
+            OSINTdatabase.markAsScraped(connection, articleTags['url'], '{}/{}'.format(profileName, fileName), 'articles')
 
 def findNonScrapedArticles(conn):
     articleCollection = OSINTdatabase.findUnscrapedArticles(conn, 'articles', OSINTdatabase.requestProfileListFromDB(conn, 'articles'))
@@ -122,8 +121,8 @@ def main():
     articleCollection = OSINTdatabase.writeOGTagsToDB(conn, OGTagCollection, "articles")
 
     # Looping through the list of articles from specific news site in the list of all articles from all sites
-    for articleList in articleCollection:
-        scrapeUsingProfile(articleList, connection=conn)
+    for profileName in articleCollection:
+        scrapeUsingProfile(articleCollection[profileName], profileName, connection=conn)
 
     printDebug("\n---\n", False)
 
