@@ -41,8 +41,7 @@ def main():
     OGTagCollection = OSINTtags.collectAllOGTags(articleURLLists)[profile]
     for articleCollection in OGTagCollection:
         os.system(f"firefox {articleCollection['url']}")
-    OGTagCollection.insert(0, profile)
-    scrapeUsingProfile(OGTagCollection, articlePath=vaultPath)
+    scrapeUsingProfile(OGTagCollection, profile, articlePath=vaultPath)
 
 if __name__ == "__main__":
     main()
