@@ -19,7 +19,9 @@ except:
     exit()
 
 try:
-    eval("scripts.{}.main()".format(backendScripts[scriptNumber]))
+    backendScripts[scriptNumber]
 except IndexError:
     print("The number you entered doesn't correspond to a script, it should be between 0 and {}".format(len(backendScripts) - 1))
+
+eval("scripts.{}.main()".format(backendScripts[scriptNumber]))
 
