@@ -92,7 +92,7 @@ def main():
 
     printDebug("Writing the superuser credential to disk")
 
-    saveCredential("admin", 0o000, adminPassword)
+    saveCredential("osinter_admin", 0o440, adminPassword)
 
     # Making sure the database has gotten the needed table(s)
     printDebug("Creating the needed \"article\" table...")
