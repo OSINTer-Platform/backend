@@ -23,11 +23,9 @@ def fromURLToMarkdown(articleMetaTags, currentProfile, MDFilePath="./"):
 
     printDebug("\n", False)
     # Scrape the whole article source based on how the profile says
-    if currentProfile['scraping']['type'] == "no-action":
-        printDebug("No-action scraping: " + articleMetaTags['url'])
-        articleSource = OSINTscraping.scrapePageDynamic(articleMetaTags['url'])
-    else:
-        raise Exception(profile['source']['name'] + " apparently didn't have a specified way of scraping the articles autonomously, exiting.")
+    scrapingTypes = currentProfile['scraping']['type'].split(";")
+    printDebug("Scraping: " + articleMetaTags['url'] + " using the types " + str(scrapingTypes))
+    articleSource = OSINTscraping.scrapePageDynamic(articleMetaTags['url'], scrapingTypes)
 
     printDebug("Extracting the details")
     articleSoup = bs(articleSource, 'html.parser')
