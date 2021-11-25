@@ -37,10 +37,10 @@ def fromURLToMarkdown(articleMetaTags, currentProfile, MDFilePath="./"):
     articleTags = OSINTtext.generateTags(OSINTtext.cleanText(articleClearText))
     intObjects = OSINTtext.locateObjectsOfInterrest(articleClearText)
 
-    if os.path.isfile(Path("./tools/keywords.txt")):
-        manualTags = OSINTtext.locateKeywords(OSINTmisc.decodeKeywordsFile(Path("./tools/keywords.txt")), articleClearText)
-    else:
-        manualTags = []
+    manualTags = {}
+    if os.path.isdir(Path("./tools/keywords/")):
+        for file in os.listdir(Path("./tools/keywords/")):
+            manualTags[file] = OSINTtext.locateKeywords(OSINTmisc.decodeKeywordsFile(Path(f"./tools/keywords/{file}")), articleClearText)
 
     printDebug("Creating the markdown file")
     # Create the markdown file
