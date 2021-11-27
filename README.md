@@ -46,9 +46,13 @@ tagging it with Cobalt-Strike if theres one section describing Cobalt, and then
 another section having the word strike in it.
 
 To define these custom tags for OSINTer to look for and tag the articles with,
-you will first have to create a file inside OSINTbackend/tools called
-"keywords.txt" (so the full path is ./OSINTbackend/tools/keywords.txt). In here
-you can then specify the custom tags in this format:
+you will first have to create a file inside OSINTbackend/tools/keywords/ called
+a name that describes that type of keywords (so the full path is
+./OSINTbackend/tools/keywords/[fileName]). The reason for the file name needing
+to have something to do with that category of keywords, is becaused the
+filename will be used as the title for the keywords in the article MD File.
+Once this is done, you can then specify the custom tags in this format in the
+file:
 
 ```(keyword),(keyword),(keyword);(tag);[proximity]```
 
