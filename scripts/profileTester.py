@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 
-# The name of your obsidian vault
-obsidianVault = ""
 # The absolute path to your obsidian vault
 vaultPath = ""
 
@@ -30,8 +28,8 @@ from scripts.scrapeAndStore import scrapeUsingProfile
 
 # Function checking whether the variables specifying which obsidian vault to use is set
 def checkIfObsidianDetailsSet():
-    if obsidianVault == "" or vaultPath == "":
-        raise Exception("You need to specify which Obsidian vault to use, and the path to it. These details are defined in the very part of the script as variables.")
+    if vaultPath == "":
+        raise Exception("You need to specify the path to your obsidian vault. This is defined in the very start of the script as a variable.")
 
 
 def main():
