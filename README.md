@@ -2,35 +2,27 @@
 
 [![OSINTer](https://raw.githubusercontent.com/bertmad3400/OSINTer/master/logo.png)](https://osinter.dk)
 
-## What is the purpose of OSINTbackend?
-The OSINTbackend repo is a part of the whole OSINT'er project which is aiming
-at providing the tools for scraping large information from news sites and in
-combination with the
-[OSINTmodules](https://github.com/bertmad3400/OSINTmodules) and the
-[OSINTprofiles](https://github.com/bertmad3400/OSINTprofiles), the scripts in
-OSINTbackend offers a way of collecting and organizing the relevant information
-from news articles in a simple, futureproof and scalable fashion.
+## Welcome to OSINTer
+This repo is a part of a larger project called
+![OSINTer](https://github.com/bertmad3400/OSINTer). For more information on the
+project as a shole, you can find OSINTer at
+![https://github.com/bertmad3400/OSINTer](https://github.com/bertmad3400/OSINTer).
 
-Whereas the [OSINTprofiles](https://github.com/bertmad3400/OSINTprofiles) are
-used for locating the relevant information on the newssites, and the
-[OSINTmodules](https://github.com/bertmad3400/OSINTmodules) are the code that
-runs behind the scenes organized in a simple and manageable way, the
-OSINTbackend is a collection of simple scripts bringing those to together into a
-single project that allows you to easily scrape large amounts of data from news
-sites and organize an overview into a postgresql database, along with the whole
-article into folders of markdown files, parsed from the HTML code from the
-websites. For more information, check out the README at the
-[OSINT'er](https://github.com/bertmad3400/OSINTer) project and for setup
-have a look at [OSINTansible](https://github.com/bertmad3400/OSINTansible)
+## What is OSINTbackend?
+OSINTbackend is responsible for acting as a collection of scripts, written to
+utilize [OSINTmodules](https://github.com/bertmad3400/OSINTmodules) to scrape
+modern news sites, and store the information in a standardized and managable
+form. It allows for collecting large amounts of information, while still being
+secure and scalable and not containing much boiler-plate code.
 
 ### Specific keywords
 OSINTbackend already automatically generate a lot of keywords, called tags for
 the different articles (something that is especially relevant if you're using
-Obsidian for handling the markdown files). These can contain technical terms
-thats used a lot in the articles or possibly objects of interrest like email or
-ip adresses found in the article, but you also have the option to define some
-patterns that OSINTer should look for in the article, and tag the article with
-it if found.
+Obsidian for handling the markdown files), which is used to group articles by
+field or subjects. These can contain technical terms thats used a lot in the
+articles or possibly objects of interrest like email or ip adresses found in
+the article, but you also have the option to define some patterns that OSINTer
+should look for in the article, and tag the article with it if found.
 
 This works by OSINTer having a list of lists of words to look for. One of these
 lists inside the main list could look something like this:
