@@ -5,7 +5,7 @@
 ## Welcome to OSINTer
 This repo is a part of a larger project called
 ![OSINTer](https://github.com/bertmad3400/OSINTer). For more information on the
-project as a shole, you can find OSINTer at
+project as a whole, you can find OSINTer at
 ![https://github.com/bertmad3400/OSINTer](https://github.com/bertmad3400/OSINTer).
 
 ## What is OSINTbackend?
