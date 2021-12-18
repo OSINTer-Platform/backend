@@ -51,5 +51,5 @@ retail;victim.industry.name=Retail
 shops;victim.industry.name=Retail
 wholesale,comp;victim.industry.name=Wholesale Trade
 transportation,comp;victim.industry.name=Transportation
-logistics,comp;;victim.industry.name=Transportation
+logistics,comp;victim.industry.name=Transportation
 utility,comp;victim.industry.name=Utility
