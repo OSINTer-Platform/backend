@@ -85,7 +85,7 @@ def main():
     printDebug("Removing those articles that have already been stored in the database")
     filteredArticleURLCollection = esClient.filterArticleURLList(articleURLCollection)
 
-    numberOfArticleAfterFilter = sum ([ len(filteredArticleURLCollection[profileName]) for profileName in filteredArticleURLCollection ]) - len(filteredArticleURLCollection)
+    numberOfArticleAfterFilter = sum ([ len(filteredArticleURLCollection[profileName]) for profileName in filteredArticleURLCollection ])
 
     if numberOfArticleAfterFilter == 0:
         printDebug("All articles seems to have already been stored, exiting.")
