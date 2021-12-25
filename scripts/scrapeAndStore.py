@@ -1,8 +1,5 @@
 #!/usr/bin/python3
 
-# Used for creating a connection to the database
-import psycopg2
-
 # Used for loading the profile
 import json
 
@@ -12,25 +9,45 @@ from pathlib import Path
 import os
 
 from bs4 import BeautifulSoup as bs
+from markdownify import markdownify
 
 debugMessages = True
 
-from OSINTmodules.OSINTprofiles import getProfiles
 from OSINTmodules.OSINTmisc import printDebug
 from OSINTmodules import *
 
-def fromURLToMarkdown(articleMetaTags, currentProfile, MDFilePath="./"):
+import dateutil.parser as dateParser
+from datetime import datetime, timezone
+
+esClient = OSINTelastic.elasticDB("osinter_articles")
+
+def handleSingleArticle(URL, currentProfile):
 
     printDebug("\n", False)
+
     # Scrape the whole article source based on how the profile says
     scrapingTypes = currentProfile['scraping']['type'].split(";")
-    printDebug("Scraping: " + articleMetaTags['url'] + " using the types " + str(scrapingTypes))
-    articleSource = OSINTscraping.scrapePageDynamic(articleMetaTags['url'], scrapingTypes)
+    printDebug(f"Scraping: {URL} using the types {str(scrapingTypes)}")
+    articleSource = OSINTscraping.scrapePageDynamic(URL, scrapingTypes)
+    articleSoup = bs(articleSource, "html.parser")
+
 
     printDebug("Extracting the details")
-    articleSoup = bs(articleSource, 'html.parser')
-    # Gather the needed information from the article
-    articleContent, articleClearText = OSINTextract.extractArticleContent(currentProfile['scraping']['content'], articleSoup)
+    articleMetaInformation = OSINTextract.extractMetaInformation(articleSoup)
+
+    if articleMetaInformation["publish_date"]:
+        tzinfos = {"UTC": 0}
+        articleMetaInformation["publish_date"] = dateParser.parse(articleMetaInformation["publish_date"], tzinfos=tzinfos)
+    else:
+        articleMetaInformation["publish_date"] = datetime.now(timezone.utc).astimezone()
+
+
+    currentArticle = OSINTobjects.Article(url = URL, profile = currentProfile["source"]["profileName"], **articleMetaInformation)
+
+    printDebug("Extracting the content")
+    articleText, articleClearText = OSINTextract.extractArticleContent(currentProfile['scraping']['content'], articleSoup)
+
+    currentArticle.contents = markdownify(articleText)
 
     printDebug("Generating tags and extracting objects of interrest")
     # Generate the tags
@@ -44,74 +61,31 @@ def fromURLToMarkdown(articleMetaTags, currentProfile, MDFilePath="./"):
             if currentTags != []:
                 manualTags[file] = currentTags
 
-    printDebug("Creating the markdown file")
-    # Create the markdown file
-    MDFileName = OSINTfiles.createMDFile(currentProfile['source']['name'], articleMetaTags, articleContent, articleTags, MDFilePath=MDFilePath, intObjects=intObjects, manualTags=manualTags)
+    printDebug("Setting the inserted_at date.")
+    currentArticle.inserted_at = datetime.now(timezone.utc).astimezone()
 
-    return MDFileName
+    printDebug("Saving the article")
+    esClient.saveArticle(currentArticle)
 
-def scrapeUsingProfile(articleList, profileName, articlePath="", connection=None):
+def scrapeUsingProfile(articleURLList, profileName):
     printDebug("\n", False)
     printDebug("Scraping using this profile: " + profileName)
 
-    # Making sure the folder for storing the markdown files for the articles in exists, will throw exception if not
-    OSINTmisc.createNewsSiteFolder(profileName)
-
     # Loading the profile for the current website
-    currentProfile = json.loads(getProfiles(profileName))
+    currentProfile = json.loads(OSINTprofiles.getProfiles(profileName))
 
-    if articlePath == "":
-        # Creating the path to the article for the news site
-        articlePath = "./articles/{}/".format(profileName)
-
-    for articleTags in articleList:
-        fileName = fromURLToMarkdown(articleTags, currentProfile, MDFilePath = articlePath)
-        if connection != None:
-            OSINTdatabase.markAsScraped(connection, articleTags['url'], '{}/{}'.format(profileName, fileName), 'articles')
-
-def findNonScrapedArticles(conn):
-
-    profileList = OSINTdatabase.requestProfileListFromDB(conn, 'articles')
-    articleCollection = OSINTdatabase.requestOGTagsFromDB(conn, "articles", profileList, limit=100, scraped=False)
-    orderedArticleCollection = { profileName : [] for profileName in profileList }
-
-    for articleDict in articleCollection:
-        orderedArticleCollection[articleDict["profile"]].append(articleDict)
-
-    numberOfArticles = len(articleCollection)
-
-    if numberOfArticles > 0:
-        printDebug("Found {} articles that has yet to be scraped, scraping them now. Given no interruptions it should take around {} seconds.".format(str(numberOfArticles), str(numberOfArticles * 6)))
-        for profileName in orderedArticleCollection:
-            scrapeUsingProfile(orderedArticleCollection[profileName], profileName, connection=conn)
-        printDebug("Finished scraping articles from database, looking for new articles online")
-    else:
-        printDebug("Found no articles in database left to scrape, looking for new articles online")
+    for URL in articleURLList:
+        handleSingleArticle(URL, currentProfile)
 
 def main():
-    # Get the password for the writer account
-    postgresqlPassword = Path("./credentials/writer.password").read_text()
-
-    # Connecting to the database
-    conn = psycopg2.connect("dbname=osinter user=writer password=" + postgresqlPassword)
-
-    printDebug("Looking for articles that has been written to the database but not scraped...")
-    try:
-        findNonScrapedArticles(conn)
-    except Exception as e:
-        printDebug("Error: Something went wrong when trying to fully scrape articles stored in the DB. Reconnecting to DB. Error: \n\n{}---\n\n".format(str(e)))
-        # When encountering an error, it is not always safe to assume that the connection closed properly, so this will close if it isn't already and then connect to the DB again.
-        if conn is not None:
-            conn.close()
-        conn = psycopg2.connect("dbname=osinter user=writer password=" + postgresqlPassword)
 
     printDebug("Scraping articles from frontpages and RSS feeds")
-    articleURLCollection = OSINTscraping.gatherArticleURLs(getProfiles())
+    articleURLCollection = OSINTscraping.gatherArticleURLs(OSINTprofiles.getProfiles())
 
     printDebug("Removing those articles that have already been stored in the database")
-    filteredArticleURLCollection = OSINTdatabase.filterArticleURLList(conn, 'articles', articleURLCollection)
+    filteredArticleURLCollection = esClient.filterArticleURLList(articleURLCollection)
 
-    numberOfArticleAfterFilter = sum ([ len(filteredArticleURLList) for filteredArticleURLList in filteredArticleURLCollection ]) - len(filteredArticleURLCollection)
+    numberOfArticleAfterFilter = sum ([ len(filteredArticleURLCollection[profileName]) for profileName in filteredArticleURLCollection ]) - len(filteredArticleURLCollection)
 
     if numberOfArticleAfterFilter == 0:
         printDebug("All articles seems to have already been stored, exiting.")
@@ -119,16 +93,9 @@ def main():
     else:
         printDebug("Found {} articles left to scrape, will begin that process now".format(str(numberOfArticleAfterFilter)))
 
-    printDebug("Collecting the OG tags")
-    OGTagCollection = OSINTtags.collectAllOGTags(filteredArticleURLCollection)
-
-    printDebug("Writting the OG tags to the DB")
-    # Writting the OG tags to the database and finding those that haven't already been scraped
-    articleCollection = OSINTdatabase.writeOGTagsToDB(conn, OGTagCollection, "articles")
-
     # Looping through the list of articles from specific news site in the list of all articles from all sites
-    for profileName in articleCollection:
-        scrapeUsingProfile(articleCollection[profileName], profileName, connection=conn)
+    for profileName in filteredArticleURLCollection:
+        scrapeUsingProfile(filteredArticleURLCollection[profileName], profileName)
 
     printDebug("\n---\n", False)
 
