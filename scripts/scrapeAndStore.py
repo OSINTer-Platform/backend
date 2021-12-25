@@ -42,7 +42,7 @@ def handleSingleArticle(URL, currentProfile):
         articleMetaInformation["publish_date"] = datetime.now(timezone.utc).astimezone()
 
 
-    currentArticle = OSINTobjects.Article(url = URL, profile = currentProfile["source"]["profileName"], **articleMetaInformation)
+    currentArticle = OSINTobjects.Article(url = URL, profile = currentProfile["source"]["profileName"], source = currentProfile["source"]["name"], **articleMetaInformation)
 
     printDebug("Extracting the content")
     articleText, articleClearText = OSINTextract.extractArticleContent(currentProfile['scraping']['content'], articleSoup)
