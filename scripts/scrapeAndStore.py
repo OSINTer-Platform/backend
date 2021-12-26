@@ -51,15 +51,15 @@ def handleSingleArticle(URL, currentProfile):
 
     printDebug("Generating tags and extracting objects of interrest")
     # Generate the tags
-    articleTags = OSINTtext.generateTags(OSINTtext.cleanText(articleClearText))
-    intObjects = OSINTtext.locateObjectsOfInterrest(articleClearText)
+    currentArticle.tags["automatic"] = OSINTtext.generateTags(OSINTtext.cleanText(articleClearText))
+    currentArticle.tags["interresting"] = OSINTtext.locateObjectsOfInterrest(articleClearText)
+    currentArticle.tags["manual"] = {}
 
-    manualTags = {}
     if os.path.isdir(Path("./tools/keywords/")):
         for file in os.listdir(Path("./tools/keywords/")):
             currentTags = OSINTtext.locateKeywords(OSINTmisc.decodeKeywordsFile(Path(f"./tools/keywords/{file}")), articleClearText)
             if currentTags != []:
-                manualTags[file] = currentTags
+                currentArticle.tags["manual"][file]  = currentTags
 
     printDebug("Setting the inserted_at date.")
     currentArticle.inserted_at = datetime.now(timezone.utc).astimezone()
