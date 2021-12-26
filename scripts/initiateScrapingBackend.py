@@ -13,7 +13,9 @@ import json
 # For decompressing the geckodriver that comes compressed in the .tar.gz format when downloading it
 import tarfile
 
-from OSINTmodules import OSINTdatabase, OSINTelastic
+import sqlite3
+
+from OSINTmodules import OSINTelastic
 from OSINTmodules.OSINTmisc import printDebug
 
 def createFolder(folderName):
@@ -43,6 +45,25 @@ def downloadDriver(driverURL):
     with tarfile.open(fileobj=driverContents.raw, mode='r|gz') as driverFile:
         driverFile.extractall(path=Path("./tools/"))
 
+DBName = "./osinter_users.db"
+
+def initiateUserTable():
+    if os.path.exists(DBName):
+        os.remove(DBName)
+
+    conn = sqlite3.connect(DBName)
+    cur = conn.cursor()
+
+    cur.execute(''' CREATE TABLE users
+                (   username text NOT NULL PRIMARY KEY,
+                    saved_article_ids text DEFAULT '',
+                    read_article_ids text DEFAULT '',
+                    password_hash text NOT NULL,
+                    id text NOT NULL    )
+                ''')
+
+    conn.commit()
+    conn.close()
 
 def main():
 
@@ -58,9 +79,7 @@ def main():
     OSINTelastic.configureElasticsearch("osinter_articles")
 
     printDebug("Configuring the SQLi DB")
-    OSINTdatabase.initiateUserTable()
-
-
+    initiateUserTable()
 
 if __name__ == "__main__":
     main()
