@@ -39,3 +39,6 @@ gunicorn
 
 # Library for hashing password securly
 argon2-cffi
+
+# For connecting with the elasticsearch backend
+elasticsearch
