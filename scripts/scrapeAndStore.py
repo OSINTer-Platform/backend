@@ -19,7 +19,9 @@ from OSINTmodules import *
 import dateutil.parser as dateParser
 from datetime import datetime, timezone
 
-esClient = OSINTelastic.elasticDB("osinter_articles")
+esAddress = os.environ.get('ELASTICSEARCH_URL') or "http://localhost:9200"
+
+esClient = OSINTelastic.elasticDB(esAddress, "osinter_articles")
 
 def handleSingleArticle(URL, currentProfile):
 

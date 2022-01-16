@@ -45,26 +45,6 @@ def downloadDriver(driverURL):
     with tarfile.open(fileobj=driverContents.raw, mode='r|gz') as driverFile:
         driverFile.extractall(path=Path("./tools/"))
 
-DBName = "./osinter_users.db"
-
-def initiateUserTable():
-    if os.path.exists(DBName):
-        os.remove(DBName)
-
-    conn = sqlite3.connect(DBName)
-    cur = conn.cursor()
-
-    cur.execute(''' CREATE TABLE users
-                (   username text NOT NULL PRIMARY KEY,
-                    saved_article_ids text DEFAULT '',
-                    read_article_ids text DEFAULT '',
-                    password_hash text NOT NULL,
-                    id text NOT NULL    )
-                ''')
-
-    conn.commit()
-    conn.close()
-
 def main():
 
     printDebug("Downloading and extracting the geckodriver...")
@@ -76,10 +56,8 @@ def main():
     createFolder("logs")
 
     printDebug("Configuring elasticsearch")
-    OSINTelastic.configureElasticsearch("osinter_articles")
-
-    printDebug("Configuring the SQLi DB")
-    initiateUserTable()
+    esAddress = os.environ.get('ELASTICSEARCH_URL') or "http://localhost:9200"
+    OSINTelastic.configureElasticsearch(esAddress, "osinter_articles")
 
 if __name__ == "__main__":
     main()
