@@ -39,3 +39,6 @@ argon2-cffi
 
 # For connecting with the elasticsearch backend
 elasticsearch
+
+# For dataclass features
+attrs
