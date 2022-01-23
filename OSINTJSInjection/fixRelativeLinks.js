@@ -1,3 +1,5 @@
+document.osinterReady = false;
+
 var elementTypes = {"img": "src", "a": "href"}
 
 for (const [elementType, urlAttribute] of Object.entries(elementTypes)) {
@@ -7,3 +9,5 @@ for (const [elementType, urlAttribute] of Object.entries(elementTypes)) {
 		currentElement.setAttribute(urlAttribute, currentElement[urlAttribute]);
 	});
 }
+
+document.osinterReady = true;

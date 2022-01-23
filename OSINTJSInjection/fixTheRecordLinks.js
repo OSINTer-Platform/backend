@@ -1,3 +1,5 @@
+document.osinterReady = false;
+
 // For fixing general links and source links for images
 var elementTypes = {"img": "src", "a": "href"}
 
@@ -16,3 +18,5 @@ ogElement = document.querySelector("meta[property='og:image']")
 ogURL = ogElement["content"]
 ogFixedURL = ogURL.replace("www-therecord.recfut.com", "therecord.media")
 ogElement.setAttribute("content", ogFixedURL)
+
+document.osinterReady = true;
