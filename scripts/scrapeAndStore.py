@@ -66,7 +66,7 @@ def handleSingleArticle(URL, currentProfile):
     currentArticle.inserted_at = datetime.now(timezone.utc).astimezone()
 
     printDebug("Saving the article")
-    esClient.saveArticle(currentArticle)
+    return esClient.saveArticle(currentArticle)
 
 def scrapeUsingProfile(articleURLList, profileName):
     printDebug("\n", False)
@@ -75,8 +75,12 @@ def scrapeUsingProfile(articleURLList, profileName):
     # Loading the profile for the current website
     currentProfile = OSINTprofiles.getProfiles(profileName)
 
+    articleIDs = []
+
     for URL in articleURLList:
-        handleSingleArticle(URL, currentProfile)
+        articleIDs.append(handleSingleArticle(URL, currentProfile))
+
+    return articleIDs
 
 def main():
 
