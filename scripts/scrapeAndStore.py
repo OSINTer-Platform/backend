@@ -20,7 +20,6 @@ import dateutil.parser as dateParser
 from datetime import datetime, timezone
 
 esAddress = os.environ.get('ELASTICSEARCH_URL') or "http://localhost:9200"
-
 esClient = OSINTelastic.elasticDB(esAddress, "osinter_articles")
 
 def handleSingleArticle(URL, currentProfile):
@@ -74,7 +73,7 @@ def scrapeUsingProfile(articleURLList, profileName):
     printDebug("Scraping using this profile: " + profileName)
 
     # Loading the profile for the current website
-    currentProfile = json.loads(OSINTprofiles.getProfiles(profileName))
+    currentProfile = OSINTprofiles.getProfiles(profileName)
 
     for URL in articleURLList:
         handleSingleArticle(URL, currentProfile)

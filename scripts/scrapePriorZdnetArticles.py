@@ -13,7 +13,7 @@ from OSINTmodules import *
 from scripts.scrapeAndStore import scrapeUsingProfile
 
 def main():
-    zdnetProfile = json.loads(getProfiles("zdnet"))
+    zdnetProfile = getProfiles("zdnet")
 
     if os.path.isfile("./progress.txt"):
         with open("./progress.txt", "r") as file:
