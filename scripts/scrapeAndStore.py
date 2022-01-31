@@ -50,7 +50,8 @@ def handleSingleArticle(URL, currentProfile):
 
     articleClearText = OSINTtext.cleanText(articleClearText)
 
-    currentArticle.contents = markdownify(articleText)
+    currentArticle.content = articleClearText
+    currentArticle.formatted_content = markdownify(articleText)
 
     printDebug("Generating tags and extracting objects of interrest")
     # Generate the tags
