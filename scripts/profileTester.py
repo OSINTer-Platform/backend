@@ -13,7 +13,14 @@ esClient = OSINTelastic.elasticDB(esAddress, "osinter_articles")
 
 
 def main():
-    profile = input("Which profile do you want to test? ")
+    profileList = OSINTprofiles.getProfiles(justNames = True)
+
+    print("Available profiles:")
+
+    for i, profileName in enumerate(profileList):
+        print(f"{str(i)}: {profileName}")
+
+    profile = profileList[int(input("Which profile do you want to test? "))]
 
     url = input("Enter specific URL or leave blank for scraping 10 urls by itself: ")
 
