@@ -48,11 +48,13 @@ def handleSingleArticle(URL, currentProfile):
     printDebug("Extracting the content")
     articleText, articleClearText = OSINTextract.extractArticleContent(currentProfile['scraping']['content'], articleSoup)
 
+    articleClearText = OSINTtext.cleanText(articleClearText)
+
     currentArticle.contents = markdownify(articleText)
 
     printDebug("Generating tags and extracting objects of interrest")
     # Generate the tags
-    currentArticle.tags["automatic"] = OSINTtext.generateTags(OSINTtext.cleanText(articleClearText))
+    currentArticle.tags["automatic"] = OSINTtext.generateTags(OSINTtext.tokenizeText(articleClearText))
     currentArticle.tags["interresting"] = OSINTtext.locateObjectsOfInterrest(articleClearText)
     currentArticle.tags["manual"] = {}
 
