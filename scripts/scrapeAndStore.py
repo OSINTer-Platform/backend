@@ -34,7 +34,7 @@ def handleSingleArticle(URL, currentProfile):
 
 
     printDebug("Extracting the details")
-    articleMetaInformation = OSINTextract.extractMetaInformation(articleSoup)
+    articleMetaInformation = OSINTextract.extractMetaInformation(articleSoup, currentProfile['scraping']['meta'])
 
     if articleMetaInformation["publish_date"]:
         tzinfos = {"UTC": 0}
