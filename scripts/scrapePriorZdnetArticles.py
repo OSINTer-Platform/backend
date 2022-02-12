@@ -13,6 +13,10 @@ from OSINTmodules import *
 from scripts.scrapeAndStore import scrapeUsingProfile
 
 def main():
+    OSINTmisc.printDebug("Configuring elasticsearch")
+    esAddress = os.environ.get('ELASTICSEARCH_URL') or "http://localhost:9200"
+    OSINTelastic.configureElasticsearch(esAddress, "osinter_zdnet")
+
     zdnetProfile = getProfiles("zdnet")
 
     if os.path.isfile("./progress.txt"):
@@ -26,11 +30,9 @@ def main():
         with open("./progress.txt", "w") as file:
             file.write(str(i))
         OSINTmisc.printDebug("Scraping page {}.".format(str(i)))
-        articleURLCollection = [ OSINTscraping.scrapeArticleURLs("https://www.zdnet.com/", "https://www.zdnet.com/topic/security/{}/".format(str(i)), zdnetProfile["source"]["scrapingTargets"], "zdnet")]
+        articleURLList = OSINTscraping.scrapeArticleURLs("https://www.zdnet.com/", "https://www.zdnet.com/topic/security/{}/".format(str(i)), zdnetProfile["source"]["scrapingTargets"], "zdnet")
 
-        OGTagCollection = OSINTtags.collectAllOGTags(articleURLCollection)["zdnet"]
-
-        scrapeUsingProfile(OGTagCollection, "zdnet", articlePath="./ZDNetArticles/")
+        scrapeUsingProfile(articleURLList, "zdnet")
 
 if __name__ == "__main__":
     main()
