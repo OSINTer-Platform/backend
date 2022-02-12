@@ -20,7 +20,8 @@ import dateutil.parser as dateParser
 from datetime import datetime, timezone
 
 esAddress = os.environ.get('ELASTICSEARCH_URL') or "http://localhost:9200"
-esClient = OSINTelastic.elasticDB(esAddress, "osinter_articles")
+esIndex = os.environ.get("ARTICLE_INDEX") or "osinter_articles"
+esClient = OSINTelastic.elasticDB(esAddress, esIndex)
 
 def handleSingleArticle(URL, currentProfile):
 
