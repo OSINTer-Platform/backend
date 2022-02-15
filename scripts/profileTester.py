@@ -8,8 +8,9 @@ from scripts.scrapeAndStore import scrapeUsingProfile
 
 import elasticsearch
 
-esAddress = os.environ.get('ELASTICSEARCH_URL') or "http://localhost:9200"
-esClient = OSINTelastic.elasticDB(esAddress, "osinter_articles")
+configOptions = OSINTconfig.backendConfig()
+
+esClient = OSINTelastic.elasticDB(configOptions.ELASTICSEARCH_URL, configOptions.ELASTICSEARCH_ARTICLE_INDEX)
 
 
 def main():

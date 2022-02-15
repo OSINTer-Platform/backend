@@ -12,10 +12,10 @@ from OSINTmodules import *
 
 from scripts.scrapeAndStore import scrapeUsingProfile
 
+configOptions = OSINTconfig.backendConfig()
+
 def main():
-    OSINTmisc.printDebug("Configuring elasticsearch")
-    esAddress = os.environ.get('ELASTICSEARCH_URL') or "http://localhost:9200"
-    OSINTelastic.configureElasticsearch(esAddress, "osinter_zdnet")
+    OSINTelastic.configureElasticsearch(configOptions.ELASTICSEARCH_URL, "osinter_zdnet")
 
     zdnetProfile = getProfiles("zdnet")
 

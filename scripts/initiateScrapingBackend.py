@@ -15,8 +15,10 @@ import tarfile
 
 import sqlite3
 
-from OSINTmodules import OSINTelastic
+from OSINTmodules import OSINTelastic, OSINTconfig
 from OSINTmodules.OSINTmisc import printDebug
+
+configOptions = OSINTconfig.backendConfig()
 
 def createFolder(folderName):
     if not os.path.isdir(Path("./" + folderName)):
@@ -56,8 +58,7 @@ def main():
     createFolder("logs")
 
     printDebug("Configuring elasticsearch")
-    esAddress = os.environ.get('ELASTICSEARCH_URL') or "http://localhost:9200"
-    OSINTelastic.configureElasticsearch(esAddress, "osinter_articles")
+    OSINTelastic.configureElasticsearch(configOptions.ELASTICSEARCH_URL, configOptions.ELASTICSEARCH_ARTICLE_INDEX)
 
 if __name__ == "__main__":
     main()

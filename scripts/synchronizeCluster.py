@@ -7,9 +7,9 @@ import os
 from OSINTmodules.OSINTmisc import printDebug
 from OSINTmodules import *
 
-esAddress = os.environ.get('ELASTICSEARCH_URL') or "http://localhost:9200"
+configOptions = OSINTconfig.backendConfig()
 
-esClient = OSINTelastic.elasticDB(esAddress, "osinter_articles")
+esClient = OSINTelastic.elasticDB(configOptions.ELASTICSEARCH_URL, configOptions.ELASTICSEARCH_ARTICLE_INDEX)
 
 def main():
 
