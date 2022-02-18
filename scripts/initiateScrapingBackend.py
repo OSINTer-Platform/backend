@@ -1,11 +1,5 @@
 #!/usr/bin/python3
 
-try:
-    # For if the user wants verbose output
-    from __main__ import debugMessages
-except:
-    debugMessages = True
-
 import os
 from pathlib import Path
 import requests
@@ -16,7 +10,6 @@ import tarfile
 import sqlite3
 
 from OSINTmodules import OSINTelastic, OSINTconfig
-from OSINTmodules.OSINTmisc import printDebug
 
 configOptions = OSINTconfig.backendConfig()
 
@@ -49,15 +42,15 @@ def downloadDriver(driverURL):
 
 def main():
 
-    printDebug("Downloading and extracting the geckodriver...")
+    configOptions.logger.info("Downloading and extracting the geckodriver...")
 
     downloadDriver(extractDriverURL())
 
-    printDebug("Create folder for logs")
+    configOptions.logger.info("Create folder for logs")
 
     createFolder("logs")
 
-    printDebug("Configuring elasticsearch")
+    configOptions.logger.info("Configuring elasticsearch")
     OSINTelastic.configureElasticsearch(configOptions.ELASTICSEARCH_URL, configOptions.ELASTICSEARCH_ARTICLE_INDEX)
 
 if __name__ == "__main__":

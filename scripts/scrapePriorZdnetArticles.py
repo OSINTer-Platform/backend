@@ -5,8 +5,6 @@ import json
 
 import os
 
-debugMessages = True
-
 from OSINTmodules.OSINTprofiles import getProfiles
 from OSINTmodules import *
 
@@ -29,7 +27,7 @@ def main():
         print(i)
         with open("./progress.txt", "w") as file:
             file.write(str(i))
-        OSINTmisc.printDebug("Scraping page {}.".format(str(i)))
+        configOptions.logger.info("Scraping page {}.".format(str(i)))
         articleURLList = OSINTscraping.scrapeArticleURLs("https://www.zdnet.com/", "https://www.zdnet.com/topic/security/{}/".format(str(i)), zdnetProfile["source"]["scrapingTargets"], "zdnet")
 
         scrapeUsingProfile(articleURLList, "zdnet")

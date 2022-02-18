@@ -1,10 +1,7 @@
 #!/usr/bin/python3
 
-debugMessages = False
-
 import os
 
-from OSINTmodules.OSINTmisc import printDebug
 from OSINTmodules import *
 
 configOptions = OSINTconfig.backendConfig()
@@ -17,14 +14,14 @@ def main():
 
     remoteEsClient = OSINTelastic.elasticDB(remoteEsAddress, "osinter_articles")
 
-    printDebug("Downloading articles...")
+    configOptions.logger.info("Downloading articles...")
 
     articles = remoteEsClient.searchArticles({"limit" : 10000})
 
-    printDebug(len(articles["articles"]))
+    configOptions.logger.info(len(articles["articles"]))
 
-    printDebug(f"Downloaded {str(articles['result_number'])} articles.")
-    printDebug("Uploading articles")
+    configOptions.logger.info(f"Downloaded {str(articles['result_number'])} articles.")
+    configOptions.logger.info("Uploading articles")
 
     for article in articles["articles"]:
         if not esClient.existsInDB(article.url):
