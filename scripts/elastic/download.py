@@ -8,9 +8,7 @@ configOptions = OSINTconfig.backendConfig()
 
 esClient = OSINTelastic.elasticDB(configOptions.ELASTICSEARCH_URL, configOptions.ELASTICSEARCH_ARTICLE_INDEX)
 
-def main():
-
-    remoteEsAddress = input("Please enter the full URL (with read access) of the remote Elasticsearch cluster: ")
+def main(remoteEsAddress):
 
     remoteEsClient = OSINTelastic.elasticDB(remoteEsAddress, "osinter_articles")
 

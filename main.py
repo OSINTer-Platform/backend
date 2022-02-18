@@ -2,6 +2,7 @@
 
 import scripts
 from scripts import *
+from scripts.elastic import *
 
 def selectScript(scriptNames):
     print("Which script do you want ro run?")
@@ -22,7 +23,7 @@ def selectScript(scriptNames):
         exit()
 
 def main():
-    scriptNames = [("initiateScrapingBackend", "Intiate the OSINTer backend"), ("profileTester", "Test a profile"), ("scrapeAndStore", "Scrape articles based on available profiles"), ("scrapePriorZdnetArticles", "Scrape old ZDNet articles"), ("verifyKeywordFiles", "Verify the available keyword files")]
+    scriptNames = [("initiateScrapingBackend", "Intiate the OSINTer backend"), ("profileTester", "Test a profile"), ("scrapeAndStore", "Scrape articles based on available profiles"), ("scrapePriorZdnetArticles", "Scrape old ZDNet articles"), ("verifyKeywordFiles", "Verify the available keyword files"), ("elastic", "Run a series of elasticsearch-based scripts")]
 
     scriptName = selectScript(scriptNames)
 
@@ -40,6 +41,18 @@ def main():
         url = input("Enter specific URL or leave blank for scraping 10 urls by itself: ")
 
         scripts.profileTester.main(profile, url)
+        exit()
+
+    elif scriptName == "elastic":
+        elasticScriptNames = [("download", "Download articles from remote cluster"), ("export", "Export the OSINTer article index to stdout")]
+        elasticScriptName = selectScript(elasticScriptNames)
+
+        if elasticScriptName == "download":
+            remoteEsAddress = input("Please enter the full URL (with read access) of the remote Elasticsearch cluster: ")
+            scripts.elastic.download.main(remoteEsAddress)
+            exit()
+
+        eval(f"scripts.{scriptName}.{elasticScriptName}.main()")
         exit()
 
     eval(f"scripts.{scriptName}.main()")
