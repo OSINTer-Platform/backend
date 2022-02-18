@@ -13,18 +13,7 @@ configOptions = OSINTconfig.backendConfig()
 esClient = OSINTelastic.elasticDB(configOptions.ELASTICSEARCH_URL, configOptions.ELASTICSEARCH_ARTICLE_INDEX)
 
 
-def main():
-    profileList = OSINTprofiles.getProfiles(justNames = True)
-
-    print("Available profiles:")
-
-    for i, profileName in enumerate(profileList):
-        print(f"{str(i)}: {profileName}")
-
-    profile = profileList[int(input("Which profile do you want to test? "))]
-
-    url = input("Enter specific URL or leave blank for scraping 10 urls by itself: ")
-
+def main(profile, url=""):
     if url:
         articleURLCollection = {profile : [url]}
     else:
