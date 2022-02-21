@@ -45,7 +45,7 @@ def handleSingleArticle(URL, currentProfile):
     articleClearText = OSINTtext.cleanText(articleClearText)
 
     currentArticle.content = articleClearText
-    currentArticle.formatted_content = markdownify(articleText)
+    currentArticle.formatted_content = markdownify(articleText, heading_style="atx")
 
     # Generate the tags
     currentArticle.tags["automatic"] = OSINTtext.generateTags(OSINTtext.tokenizeText(articleClearText))
