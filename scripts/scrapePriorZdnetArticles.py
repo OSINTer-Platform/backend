@@ -13,7 +13,7 @@ from scripts.scrapeAndStore import scrapeUsingProfile
 configOptions = OSINTconfig.backendConfig()
 
 def main():
-    OSINTelastic.configureElasticsearch(configOptions.ELASTICSEARCH_URL, "osinter_zdnet")
+    OSINTelastic.configureElasticsearch(configOptions.ELASTICSEARCH_URL, configOptions.ELASTICSEARCH_CERT_PATH, "osinter_zdnet")
 
     zdnetProfile = getProfiles("zdnet")
 

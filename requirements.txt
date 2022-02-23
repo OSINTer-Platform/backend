@@ -38,7 +38,7 @@ gunicorn
 argon2-cffi
 
 # For connecting with the elasticsearch backend
-elasticsearch==7.16.1
+elasticsearch
 
 # For dataclass features
 attrs

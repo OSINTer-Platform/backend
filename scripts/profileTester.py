@@ -10,7 +10,7 @@ import elasticsearch
 
 configOptions = OSINTconfig.backendConfig()
 
-esClient = OSINTelastic.elasticDB(configOptions.ELASTICSEARCH_URL, configOptions.ELASTICSEARCH_ARTICLE_INDEX)
+esClient = OSINTelastic.elasticDB(configOptions.ELASTICSEARCH_URL, configOptions.ELASTICSEARCH_CERT_PATH, configOptions.ELASTICSEARCH_ARTICLE_INDEX)
 
 
 def main(profile, url=""):
