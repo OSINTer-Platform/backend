@@ -63,6 +63,9 @@ def handleSingleArticle(URL, currentProfile):
     return esClient.saveArticle(currentArticle)
 
 def scrapeUsingProfile(articleURLList, profileName):
+    if not articleURLList:
+        return []
+
     configOptions.logger.info("Scraping using this profile: " + profileName)
 
     # Loading the profile for the current website
