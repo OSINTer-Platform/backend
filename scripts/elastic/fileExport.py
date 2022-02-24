@@ -8,7 +8,7 @@ configOptions = OSINTconfig.backendConfig()
 
 esClient = OSINTelastic.elasticDB(configOptions.ELASTICSEARCH_URL, configOptions.ELASTICSEARCH_CERT_PATH, configOptions.ELASTICSEARCH_ARTICLE_INDEX)
 
-def main():
+def main(fileName):
     articles = esClient.searchArticles({"limit" : 10000})
 
     articleDicts = []
@@ -16,7 +16,8 @@ def main():
     for article in articles["articles"]:
         articleDicts.append(article.as_dict())
 
-    print(json.dumps(articleDicts))
+    with open(fileName, "w") as exportFile:
+        json.dump(articleDicts, exportFile)
 
 if __name__ == "__main__":
     main()
