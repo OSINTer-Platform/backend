@@ -42,3 +42,6 @@ elasticsearch
 
 # For dataclass features
 attrs
+
+# For generating RSS feed
+feedgen
