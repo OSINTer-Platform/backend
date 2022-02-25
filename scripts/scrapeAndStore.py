@@ -13,7 +13,6 @@ from markdownify import markdownify
 
 from OSINTmodules import *
 
-import dateutil.parser as dateParser
 from datetime import datetime, timezone
 
 configOptions = OSINTconfig.backendConfig()
@@ -30,13 +29,6 @@ def handleSingleArticle(URL, currentProfile):
 
 
     articleMetaInformation = OSINTextract.extractMetaInformation(articleSoup, currentProfile['scraping']['meta'], currentProfile['source']['address'])
-
-    if articleMetaInformation["publish_date"]:
-        tzinfos = {"UTC": 0}
-        articleMetaInformation["publish_date"] = dateParser.parse(articleMetaInformation["publish_date"], tzinfos=tzinfos)
-    else:
-        articleMetaInformation["publish_date"] = datetime.now(timezone.utc).astimezone()
-
 
     currentArticle = OSINTobjects.Article(url = URL, profile = currentProfile["source"]["profileName"], source = currentProfile["source"]["name"], **articleMetaInformation)
 
@@ -58,7 +50,7 @@ def handleSingleArticle(URL, currentProfile):
             if currentTags != []:
                 currentArticle.tags["manual"][file]  = currentTags
 
-    currentArticle.inserted_at = datetime.now(timezone.utc).astimezone()
+    currentArticle.inserted_at = datetime.now(timezone.utc)
 
     return esClient.saveArticle(currentArticle)
 
