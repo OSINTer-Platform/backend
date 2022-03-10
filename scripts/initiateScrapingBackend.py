@@ -1,15 +1,5 @@
 #!/usr/bin/python3
 
-try:
-    # For if the user wants verbose output
-    from __main__ import debugMessages
-except:
-    debugMessages = True
-
-# Used for creating a connection to the database
-import psycopg2
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-
 import os
 from pathlib import Path
 import requests
@@ -17,10 +7,11 @@ import json
 # For decompressing the geckodriver that comes compressed in the .tar.gz format when downloading it
 import tarfile
 
-from OSINTmodules import OSINTdatabase
-from OSINTmodules.OSINTmisc import printDebug
+import sqlite3
 
-postgresqlPassword = ""
+from OSINTmodules import OSINTelastic, OSINTconfig
+
+configOptions = OSINTconfig.backendConfig()
 
 def createFolder(folderName):
     if not os.path.isdir(Path("./" + folderName)):
@@ -49,74 +40,18 @@ def downloadDriver(driverURL):
     with tarfile.open(fileobj=driverContents.raw, mode='r|gz') as driverFile:
         driverFile.extractall(path=Path("./tools/"))
 
-def saveCredential(fileName, filePerms, password):
-    with os.fdopen(os.open(Path("./credentials/{}.password".format(fileName)), os.O_WRONLY | os.O_CREAT, int(filePerms)), 'w') as file:
-        file.write(password)
-
 def main():
 
-    printDebug("Downloading and extracting the geckodriver...")
+    configOptions.logger.info("Downloading and extracting the geckodriver...")
 
     downloadDriver(extractDriverURL())
 
-    printDebug("Creating the folders for storing the scraped articles and logs...")
+    configOptions.logger.info("Create folder for logs")
 
-    for folder in ['articles', 'logs', 'credentials']:
-        createFolder(folder)
+    createFolder("logs")
 
-    printDebug("Creating the \"osinter\" postgresql database...")
-
-    # Connecting to the database
-    conn = psycopg2.connect("user=postgres")
-
-    # Needed ass create database cannot be run within transaction
-    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-
-    # Creating a new database
-    with conn.cursor() as cur:
-        try:
-            cur.execute("CREATE DATABASE osinter;")
-            printDebug("Database created.")
-        except psycopg2.errors.DuplicateDatabase:
-            printDebug("Database already exists, skipping.")
-
-    conn.close()
-
-    printDebug("Creating a new superuser in the new database.")
-
-    # Connecting to the newly created database
-    conn = psycopg2.connect("dbname=osinter user=postgres")
-
-    # Create the new users, and switch the connection to the new super user in the process
-    adminPassword, conn = OSINTdatabase.initiateAdmin(conn)
-
-    printDebug("Writing the superuser credential to disk")
-
-    saveCredential("osinter_admin", 0o440, adminPassword)
-
-    # Making sure the database has gotten the needed table(s)
-    printDebug("Creating the needed \"article\" table...")
-    if OSINTdatabase.initiateArticleTable(conn):
-        printDebug("The \"article\" table has been created.")
-    else:
-        printDebug("The \"article\" table already exists, skipping.")
-
-    printDebug("Creating the needed \"osinter_users\" table...")
-    if OSINTdatabase.initiateUserTable(conn):
-        printDebug("The \"osinter_users\" table has been created.")
-    else:
-        printDebug("The \"osinter_users\" table already exists, skipping.")
-
-
-    printDebug("Creating the other needed users")
-
-    usernamePasswordAndPerms = OSINTdatabase.initiateUsers(conn)
-
-    printDebug("Writing the password for new users to the disk")
-
-    print(usernamePasswordAndPerms)
-    for user in usernamePasswordAndPerms:
-        saveCredential(user, usernamePasswordAndPerms[user]["perms"], usernamePasswordAndPerms[user]["password"])
+    configOptions.logger.info("Configuring elasticsearch")
+    OSINTelastic.configureElasticsearch(configOptions.ELASTICSEARCH_URL, configOptions.ELASTICSEARCH_CERT_PATH, configOptions.ELASTICSEARCH_ARTICLE_INDEX)
 
 if __name__ == "__main__":
     main()
