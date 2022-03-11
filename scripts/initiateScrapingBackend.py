@@ -51,7 +51,7 @@ def main():
     createFolder("logs")
 
     configOptions.logger.info("Configuring elasticsearch")
-    OSINTelastic.configureElasticsearch(configOptions.ELASTICSEARCH_URL, configOptions.ELASTICSEARCH_CERT_PATH, configOptions.ELASTICSEARCH_ARTICLE_INDEX)
+    OSINTelastic.configureElasticsearch(configOptions)
 
 if __name__ == "__main__":
     main()

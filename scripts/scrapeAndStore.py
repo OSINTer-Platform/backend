@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 
 configOptions = OSINTconfig.backendConfig()
 
-esClient = OSINTelastic.elasticDB(configOptions.ELASTICSEARCH_URL, configOptions.ELASTICSEARCH_CERT_PATH, configOptions.ELASTICSEARCH_ARTICLE_INDEX)
+esClient = OSINTelastic.returnArticleDBConn(configOptions)
 
 class customMD(MarkdownConverter):
     def convert_figure(self, el, text, convert_as_inline):
