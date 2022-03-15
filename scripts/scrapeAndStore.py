@@ -57,7 +57,7 @@ def handleSingleArticle(URL, currentProfile):
 
     currentArticle.inserted_at = datetime.now(timezone.utc)
 
-    return esClient.saveArticle(currentArticle)
+    return esClient.saveDocument(currentArticle)
 
 def scrapeUsingProfile(articleURLList, profileName):
     if not articleURLList:
@@ -81,7 +81,11 @@ def main():
     articleURLCollection = OSINTscraping.gatherArticleURLs(OSINTprofiles.getProfiles())
 
     configOptions.logger.info("Removing those articles that have already been stored in the database")
-    filteredArticleURLCollection = esClient.filterArticleURLList(articleURLCollection)
+
+    filteredArticleURLCollection = {}
+
+    for articleSource in articleURLCollection:
+        filteredArticleURLCollection[articleSource] = esClient.filterDocumentList(articleURLCollection[articleSource])
 
     numberOfArticleAfterFilter = sum ([ len(filteredArticleURLCollection[profileName]) for profileName in filteredArticleURLCollection ])
 
