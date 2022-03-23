@@ -1,7 +1,5 @@
+log
 OSINTmodules
 OSINTprofiles
-articles
-credentials
-logs
 __pycache__
 tools/geckodriver
