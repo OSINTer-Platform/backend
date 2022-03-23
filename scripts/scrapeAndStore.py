@@ -85,13 +85,16 @@ def scrapeTweets(majorAuthorList, credentials, chunckSize=10):
 
     for authorList in chunckedAuthorList:
         try:
-            lastID = esTweetClient.getLastDocument(authorList)["twitter_id"]
+            lastID = esTweetClient.getLastDocument(authorList).twitter_id
             tweetData = OSINTtwitter.gatherTweetData(credentials, authorList, lastID)
-        except TypeError:
+        except AttributeError:
             tweetData = OSINTtwitter.gatherTweetData(credentials, authorList)
 
-        for tweet in OSINTtwitter.processTweetData(tweetData):
-            tweets.append(OSINTobjects.Tweet(**tweet))
+        if tweetData:
+            for tweet in OSINTtwitter.processTweetData(tweetData):
+                tweets.append(OSINTobjects.Tweet(**tweet))
+        else:
+            return []
 
     return tweets
 
