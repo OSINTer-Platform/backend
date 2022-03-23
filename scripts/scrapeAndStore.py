@@ -81,7 +81,7 @@ def scrapeUsingProfile(articleURLList, profileName):
 def scrapeTweets(majorAuthorList, credentials, chunckSize=10):
     chunckedAuthorList = [majorAuthorList[i:i+chunckSize] for i in range(0, len(majorAuthorList), chunckSize)]
 
-    tweetIDs = []
+    tweets = []
 
     for authorList in chunckedAuthorList:
         try:
