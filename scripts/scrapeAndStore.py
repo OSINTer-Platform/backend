@@ -15,9 +15,12 @@ from OSINTmodules import *
 
 from datetime import datetime, timezone
 
+from searchtweets import load_credentials
+
 configOptions = OSINTconfig.backendConfig()
 
-esClient = OSINTelastic.returnArticleDBConn(configOptions)
+esArticleClient = OSINTelastic.returnArticleDBConn(configOptions)
+esTweetClient = OSINTelastic.returnTweetDBConn(configOptions)
 
 class customMD(MarkdownConverter):
     def convert_figure(self, el, text, convert_as_inline):
@@ -57,7 +60,7 @@ def handleSingleArticle(URL, currentProfile):
 
     currentArticle.inserted_at = datetime.now(timezone.utc)
 
-    return esClient.saveDocument(currentArticle)
+    return esArticleClient.saveDocument(currentArticle)
 
 def scrapeUsingProfile(articleURLList, profileName):
     if not articleURLList:
@@ -75,6 +78,26 @@ def scrapeUsingProfile(articleURLList, profileName):
 
     return articleIDs
 
+def scrapeTweets(majorAuthorList, chunckSize=10):
+    credentials = load_credentials("~/.twitter_keys.yaml", yaml_key="search_tweets_v2", env_overwrite=False)
+
+    chunckedAuthorList = [majorAuthorList[i:i+chunckSize] for i in range(0, len(majorAuthorList), chunckSize)]
+
+    tweetIDs = []
+
+    for authorList in chunckedAuthorList:
+        try:
+            lastID = esTweetClient.getLastDocument(authorList)["twitter_id"]
+            tweetData = OSINTtwitter.gatherTweetData(credentials, authorList, lastID)
+        except TypeError:
+            tweetData = OSINTtwitter.gatherTweetData(credentials, authorList)
+
+        for tweet in OSINTtwitter.processTweetData(tweetData):
+            tweets.append(OSINTobjects.Tweet(**tweet))
+
+    return tweets
+
+
 def main():
 
     configOptions.logger.info("Scraping articles from frontpages and RSS feeds")
@@ -85,7 +108,7 @@ def main():
     filteredArticleURLCollection = {}
 
     for articleSource in articleURLCollection:
-        filteredArticleURLCollection[articleSource] = esClient.filterDocumentList(articleURLCollection[articleSource])
+        filteredArticleURLCollection[articleSource] = esArticleClient.filterDocumentList(articleURLCollection[articleSource])
 
     numberOfArticleAfterFilter = sum ([ len(filteredArticleURLCollection[profileName]) for profileName in filteredArticleURLCollection ])
 
