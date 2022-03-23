@@ -95,6 +95,25 @@ def scrapeTweets(majorAuthorList, credentials, chunckSize=10):
 
     return tweets
 
+def handleTweets(authorListPath=Path("./tools/twitter_authors")):
+    if os.path.isfile(authorListPath) and os.path.isfile(configOptions.TWITTER_CREDENTIAL_PATH):
+        credentials = load_credentials(configOptions.TWITTER_CREDENTIAL_PATH, yaml_key="search_tweets_v2", env_overwrite=False)
+
+        authorList = []
+
+        with open(authorListPath, "r") as f:
+            for line in f.readlines():
+                # Splitting by # to allow for comments
+                authorList.append(line.split("#")[0].strip())
+
+        tweetIDs = []
+
+        for tweet in scrapeTweets(authorList, credentials):
+            tweetIDs.append(esTweetClient.saveDocument(tweet))
+
+        return tweetIDs
+    else:
+        return None
 
 def main():
 
