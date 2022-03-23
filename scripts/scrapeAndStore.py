@@ -78,9 +78,7 @@ def scrapeUsingProfile(articleURLList, profileName):
 
     return articleIDs
 
-def scrapeTweets(majorAuthorList, chunckSize=10):
-    credentials = load_credentials("~/.twitter_keys.yaml", yaml_key="search_tweets_v2", env_overwrite=False)
-
+def scrapeTweets(majorAuthorList, credentials, chunckSize=10):
     chunckedAuthorList = [majorAuthorList[i:i+chunckSize] for i in range(0, len(majorAuthorList), chunckSize)]
 
     tweetIDs = []
