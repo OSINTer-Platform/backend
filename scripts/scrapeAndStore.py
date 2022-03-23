@@ -120,6 +120,9 @@ def handleTweets(authorListPath=Path("./tools/twitter_authors")):
 
 def main():
 
+    configOptions.logger.info("Scraping new tweets")
+    handleTweets()
+
     configOptions.logger.info("Scraping articles from frontpages and RSS feeds")
     articleURLCollection = OSINTscraping.gatherArticleURLs(OSINTprofiles.getProfiles())
 
