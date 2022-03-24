@@ -9,11 +9,11 @@ configOptions = OSINTconfig.backendConfig()
 esClient = OSINTelastic.returnArticleDBConn(configOptions)
 
 def main(fileName):
-    articles = esClient.searchArticles({"limit" : 10000})
+    articles = esClient.searchDocuments({"limit" : 10000})
 
     articleDicts = []
 
-    for article in articles["articles"]:
+    for article in articles["documents"]:
         articleDicts.append(article.as_dict())
 
     with open(fileName, "w") as exportFile:

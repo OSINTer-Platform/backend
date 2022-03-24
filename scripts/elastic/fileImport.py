@@ -19,4 +19,4 @@ def main(fileName):
 
         currentArticleObject = OSINTobjects.Article(**article)
         if not esClient.existsInDB(currentArticleObject.url):
-            esClient.saveArticle(currentArticleObject)
+            esClient.saveDocument(currentArticleObject)

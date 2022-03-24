@@ -15,15 +15,15 @@ def main(remoteEsAddress):
 
     configOptions.logger.info("Downloading articles...")
 
-    articles = remoteEsClient.searchArticles({"limit" : 10000})
+    articles = remoteEsClient.searchDocuments({"limit" : 10000})
 
-    configOptions.logger.info(len(articles["articles"]))
+    configOptions.logger.info(len(articles["documents"]))
     configOptions.logger.info(f"Downloaded {str(articles['result_number'])} articles.")
     configOptions.logger.info("Uploading articles")
 
-    for article in articles["articles"]:
+    for article in articles["documents"]:
         if not esClient.existsInDB(article.url):
-            esClient.saveArticle(article)
+            esClient.saveDocument(article)
 
 if __name__ == "__main__":
     main()
