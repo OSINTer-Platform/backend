@@ -24,6 +24,3 @@ def main(remoteEsAddress):
     for article in articles["documents"]:
         if not esClient.existsInDB(article.url):
             esClient.saveDocument(article)
-
-if __name__ == "__main__":
-    main()

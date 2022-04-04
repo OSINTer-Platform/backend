@@ -18,6 +18,3 @@ def main(fileName):
 
     with open(fileName, "w") as exportFile:
         json.dump(articleDicts, exportFile)
-
-if __name__ == "__main__":
-    main()

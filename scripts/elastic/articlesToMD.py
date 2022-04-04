@@ -32,6 +32,3 @@ def main(folderPath):
 
             with open(os.path.join(folderPath, profile, f"{article.id}.md"), "w") as articleFile:
                 articleFile.write(articleMD.getvalue())
-
-if __name__ == "__main__":
-    main()
