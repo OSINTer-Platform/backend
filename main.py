@@ -46,14 +46,14 @@ def main():
         exit()
 
     elif scriptName == "elastic":
-        elasticScriptNames = [("download", "Download articles from remote cluster"), ("fileExport", "Export the OSINTer article index to file"), ("fileImport", "Import OSINTer article index from file")]
+        elasticScriptNames = [("download", "Download articles from remote cluster"), ("articlesToJSON", "Export the OSINTer article index as json object to file"), ("JSONToArticles", "Import OSINTer article index as json object from file")]
         elasticScriptName = selectScript(elasticScriptNames)
 
         if elasticScriptName == "download":
             remoteEsAddress = input("Please enter the full URL (with read access) of the remote Elasticsearch cluster: ")
             scripts.elastic.download.main(remoteEsAddress)
             exit()
-        elif elasticScriptName in ["fileImport", "fileExport"]:
+        elif elasticScriptName in ["JSONToArticles", "articlesToJSON"]:
             filePath = Path(input("Please enter the absolute or relative path to the export file: ")).resolve()
             eval(f"scripts.{scriptName}.{elasticScriptName}.main(filePath)")
             exit()
