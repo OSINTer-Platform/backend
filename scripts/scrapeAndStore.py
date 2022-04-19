@@ -31,7 +31,6 @@ def handleSingleArticle(URL, currentProfile):
 
     # Scrape the whole article source based on how the profile says
     scrapingTypes = currentProfile['scraping']['type'].split(";")
-    configOptions.logger.info(f"Scraping: {URL} using the types {str(scrapingTypes)}")
     articleSource = OSINTscraping.scrapePageDynamic(URL, scrapingTypes)
     articleSoup = bs(articleSource, "html.parser")
 
@@ -66,23 +65,24 @@ def scrapeUsingProfile(articleURLList, profileName):
     if not articleURLList:
         return []
 
-    configOptions.logger.info("Scraping using this profile: " + profileName)
+    configOptions.logger.info(f'Scraping {len(articleURLList)} articles using the "{profileName}" profile.')
 
     # Loading the profile for the current website
     currentProfile = OSINTprofiles.getProfiles(profileName)
 
     articleIDs = []
 
-    for URL in articleURLList:
+    for i, URL in enumerate(articleURLList):
+        configOptions.logger.debug(f'Scraped article number {i + 1} with the types "{currentProfile["scraping"]["type"]}" and following url: {URL}.')
         articleIDs.append(handleSingleArticle(URL, currentProfile))
 
     return articleIDs
 
 def scrapeArticles():
-    configOptions.logger.info("Scraping articles from frontpages and RSS feeds")
+    configOptions.logger.debug("Scraping articles from frontpages and RSS feeds")
     articleURLCollection = OSINTscraping.gatherArticleURLs(OSINTprofiles.getProfiles())
 
-    configOptions.logger.info("Removing those articles that have already been stored in the database")
+    configOptions.logger.debug("Removing those articles that have already been stored in the database")
 
     filteredArticleURLCollection = {}
 
@@ -107,21 +107,26 @@ def getTweets(majorAuthorList, credentials, chunckSize=10):
     tweets = []
 
     for authorList in chunckedAuthorList:
+        configOptions.logger.debug(f"Scraping tweets for these authors: {' '.join(authorlist)}")
         try:
             lastID = esTweetClient.getLastDocument(authorList).twitter_id
             tweetData = OSINTtwitter.gatherTweetData(credentials, authorList, lastID)
         except AttributeError:
+            configOptions.logger.debug("These are the first tweets by these authors.")
             tweetData = OSINTtwitter.gatherTweetData(credentials, authorList)
 
         if tweetData:
+            configOptions.logger.debug("Converting twitter data to python objects.")
             for tweet in OSINTtwitter.processTweetData(tweetData):
                 tweets.append(OSINTobjects.Tweet(**tweet))
         else:
+            configOptions.logger.debug("No tweets was found.")
             return []
 
     return tweets
 
 def scrapeTweets(authorListPath=Path("./tools/twitter_authors")):
+    configOptions.logger.debug("Trying to load twitter credentials and authorlist.")
     if os.path.isfile(authorListPath) and os.path.isfile(configOptions.TWITTER_CREDENTIAL_PATH):
         credentials = load_credentials(configOptions.TWITTER_CREDENTIAL_PATH, yaml_key="search_tweets_v2", env_overwrite=False)
 
@@ -132,22 +137,31 @@ def scrapeTweets(authorListPath=Path("./tools/twitter_authors")):
                 # Splitting by # to allow for comments
                 authorList.append(line.split("#")[0].strip())
 
+        configOptions.logger.debug("Succesfully loaded twitter credentials and authorlist.")
+
         tweetIDs = []
 
-        for tweet in getTweets(authorList, credentials):
+        tweetList = getTweets(authorList, credentials)
+
+        configOptions.logger.debug("Saving the tweets.\n")
+        for tweet in tweetList:
             tweetIDs.append(esTweetClient.saveDocument(tweet))
 
         return tweetIDs
     else:
+        configOptions.logger.debug("Couldn't load twitter credentials and authorlist.\n")
         return None
 
 def main():
 
-    configOptions.logger.info("Scraping new tweets.")
-    scrapeTweets()
+    for scrapingFunction in [scrapeTweets, scrapeArticles]:
+        try:
+            configOptions.logger.info(f'Running the "{scrapingFunction.__name__}" function.')
+            scrapingFunction()
 
-    configOptions.logger.info("Scraping new articles.")
-    scrapeArticles()
+        except Exception as e:
+            configOptions.logger.critical(f'Critical error prevented running the "{scrapingFunction.__name__}".', exc_info=True)
+
 
 
 if __name__ == "__main__":
