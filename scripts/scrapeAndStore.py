@@ -78,51 +78,7 @@ def scrapeUsingProfile(articleURLList, profileName):
 
     return articleIDs
 
-def scrapeTweets(majorAuthorList, credentials, chunckSize=10):
-    chunckedAuthorList = [majorAuthorList[i:i+chunckSize] for i in range(0, len(majorAuthorList), chunckSize)]
-
-    tweets = []
-
-    for authorList in chunckedAuthorList:
-        try:
-            lastID = esTweetClient.getLastDocument(authorList).twitter_id
-            tweetData = OSINTtwitter.gatherTweetData(credentials, authorList, lastID)
-        except AttributeError:
-            tweetData = OSINTtwitter.gatherTweetData(credentials, authorList)
-
-        if tweetData:
-            for tweet in OSINTtwitter.processTweetData(tweetData):
-                tweets.append(OSINTobjects.Tweet(**tweet))
-        else:
-            return []
-
-    return tweets
-
-def handleTweets(authorListPath=Path("./tools/twitter_authors")):
-    if os.path.isfile(authorListPath) and os.path.isfile(configOptions.TWITTER_CREDENTIAL_PATH):
-        credentials = load_credentials(configOptions.TWITTER_CREDENTIAL_PATH, yaml_key="search_tweets_v2", env_overwrite=False)
-
-        authorList = []
-
-        with open(authorListPath, "r") as f:
-            for line in f.readlines():
-                # Splitting by # to allow for comments
-                authorList.append(line.split("#")[0].strip())
-
-        tweetIDs = []
-
-        for tweet in scrapeTweets(authorList, credentials):
-            tweetIDs.append(esTweetClient.saveDocument(tweet))
-
-        return tweetIDs
-    else:
-        return None
-
-def main():
-
-    configOptions.logger.info("Scraping new tweets")
-    handleTweets()
-
+def scrapeArticles():
     configOptions.logger.info("Scraping articles from frontpages and RSS feeds")
     articleURLCollection = OSINTscraping.gatherArticleURLs(OSINTprofiles.getProfiles())
 
@@ -144,6 +100,55 @@ def main():
     # Looping through the list of articles from specific news site in the list of all articles from all sites
     for profileName in filteredArticleURLCollection:
         scrapeUsingProfile(filteredArticleURLCollection[profileName], profileName)
+
+def getTweets(majorAuthorList, credentials, chunckSize=10):
+    chunckedAuthorList = [majorAuthorList[i:i+chunckSize] for i in range(0, len(majorAuthorList), chunckSize)]
+
+    tweets = []
+
+    for authorList in chunckedAuthorList:
+        try:
+            lastID = esTweetClient.getLastDocument(authorList).twitter_id
+            tweetData = OSINTtwitter.gatherTweetData(credentials, authorList, lastID)
+        except AttributeError:
+            tweetData = OSINTtwitter.gatherTweetData(credentials, authorList)
+
+        if tweetData:
+            for tweet in OSINTtwitter.processTweetData(tweetData):
+                tweets.append(OSINTobjects.Tweet(**tweet))
+        else:
+            return []
+
+    return tweets
+
+def scrapeTweets(authorListPath=Path("./tools/twitter_authors")):
+    if os.path.isfile(authorListPath) and os.path.isfile(configOptions.TWITTER_CREDENTIAL_PATH):
+        credentials = load_credentials(configOptions.TWITTER_CREDENTIAL_PATH, yaml_key="search_tweets_v2", env_overwrite=False)
+
+        authorList = []
+
+        with open(authorListPath, "r") as f:
+            for line in f.readlines():
+                # Splitting by # to allow for comments
+                authorList.append(line.split("#")[0].strip())
+
+        tweetIDs = []
+
+        for tweet in getTweets(authorList, credentials):
+            tweetIDs.append(esTweetClient.saveDocument(tweet))
+
+        return tweetIDs
+    else:
+        return None
+
+def main():
+
+    configOptions.logger.info("Scraping new tweets.")
+    scrapeTweets()
+
+    configOptions.logger.info("Scraping new articles.")
+    scrapeArticles()
+
 
 if __name__ == "__main__":
     main()
