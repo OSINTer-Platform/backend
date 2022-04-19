@@ -4,7 +4,7 @@ import os
 from time import sleep
 
 from OSINTmodules import *
-from scripts.scrapeAndStore import scrapeUsingProfile
+from scripts.scrapeAndStore import scrapeUsingProfile, gatherArticleURLs
 
 import elasticsearch
 
@@ -16,7 +16,7 @@ def main(profile, url=""):
     if url:
         articleURLCollection = {profile : [url]}
     else:
-        articleURLCollection = OSINTscraping.gatherArticleURLs([OSINTprofiles.getProfiles(profile)])
+        articleURLCollection = gatherArticleURLs([OSINTprofiles.getProfiles(profile)])
 
     articleIDs = scrapeUsingProfile(articleURLCollection[profile], profile)
 
@@ -27,7 +27,7 @@ def main(profile, url=""):
     for ID in articleIDs:
         os.system(f"firefox http://localhost:5000/renderMarkdownById/{ID}")
 
-    for article in currentArticles["articles"]:
+    for article in currentArticles["documents"]:
         os.system(f"firefox {article.url}")
 
 
