@@ -27,6 +27,23 @@ class customMD(MarkdownConverter):
         self.process_tag(el, False, children_only=True)
         return text + "\n\n"
 
+# Function for gathering list of URLs for articles from newssite
+def gatherArticleURLs(profiles):
+
+    articleURLs = {}
+
+    for profile in profiles:
+
+        # For those were the RSS feed is useful, that will be used
+        if profile["source"]['retrivalMethod'] == "rss":
+            articleURLs[profile["source"]["profileName"]] = OSINTscraping.RSSArticleURLs(profile["source"]['newsPath'], profile["source"]['profileName'])
+
+        # For basically everything else scraping will be used
+        elif profile["source"]['retrivalMethod'] == "scraping":
+            articleURLs[profile["source"]["profileName"]] = OSINTscraping.scrapeArticleURLs(profile["source"]['address'], profile["source"]['newsPath'], profile["source"]['scrapingTargets'], profile["source"]['profileName'])
+
+    return articleURLs
+
 def handleSingleArticle(URL, currentProfile):
 
     # Scrape the whole article source based on how the profile says
@@ -80,7 +97,7 @@ def scrapeUsingProfile(articleURLList, profileName):
 
 def scrapeArticles():
     configOptions.logger.debug("Scraping articles from frontpages and RSS feeds")
-    articleURLCollection = OSINTscraping.gatherArticleURLs(OSINTprofiles.getProfiles())
+    articleURLCollection = gatherArticleURLs(OSINTprofiles.getProfiles())
 
     configOptions.logger.debug("Removing those articles that have already been stored in the database")
 
