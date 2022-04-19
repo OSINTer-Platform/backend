@@ -34,13 +34,21 @@ def gatherArticleURLs(profiles):
 
     for profile in profiles:
 
-        # For those were the RSS feed is useful, that will be used
-        if profile["source"]['retrivalMethod'] == "rss":
-            articleURLs[profile["source"]["profileName"]] = OSINTscraping.RSSArticleURLs(profile["source"]['newsPath'], profile["source"]['profileName'])
+        configOptions.logger.debug(f'Gathering URLs for the "{profile["source"]["profileName"]}" profile.')
 
-        # For basically everything else scraping will be used
-        elif profile["source"]['retrivalMethod'] == "scraping":
-            articleURLs[profile["source"]["profileName"]] = OSINTscraping.scrapeArticleURLs(profile["source"]['address'], profile["source"]['newsPath'], profile["source"]['scrapingTargets'], profile["source"]['profileName'])
+        try:
+            # For those were the RSS feed is useful, that will be used
+            if profile["source"]['retrivalMethod'] == "rss":
+                configOptions.logger.debug("Using RSS for gathering links.\n")
+                articleURLs[profile["source"]["profileName"]] = OSINTscraping.RSSArticleURLs(profile["source"]['newsPath'], profile["source"]['profileName'])
+
+            # For basically everything else scraping will be used
+            elif profile["source"]['retrivalMethod'] == "scraping":
+                configOptions.logger.debug("Using scraping for gathering links.\n")
+                articleURLs[profile["source"]["profileName"]] = OSINTscraping.scrapeArticleURLs(profile["source"]['address'], profile["source"]['newsPath'], profile["source"]['scrapingTargets'], profile["source"]['profileName'])
+
+        except Exception as e:
+            configOptions.logger.exception('Problem with gathering URLs for the "{profile["source"]["profileName"]}" profile. Skipping for now.')
 
     return articleURLs
 
