@@ -45,3 +45,6 @@ attrs
 
 # For generating RSS feed
 feedgen
+
+# For scraping tweets from twitter
+searchtweets-v2
