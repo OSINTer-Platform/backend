@@ -4,8 +4,6 @@ from OSINTmodules import *
 
 from scripts import configOptions
 
-esClient = OSINTelastic.returnArticleDBConn(configOptions)
-
 def main(folderPath):
     try:
         os.mkdir(os.path.join(folderPath, "MDArticles"))
@@ -14,12 +12,12 @@ def main(folderPath):
 
     folderPath = os.path.join(folderPath, "MDArticles")
     configOptions.logger.info("Downloading list of profiles...")
-    profiles = esClient.requestSourceCategoryListFromDB()
+    profiles = configOptions.esArticleClient.requestSourceCategoryListFromDB()
 
     for profile in profiles:
 
         configOptions.logger.info(f"Downloading list of articles for {profile}")
-        articles = esClient.searchDocuments({"limit" : 10000, "sourceCategory" : [profile]}, highlight=False)["documents"]
+        articles = configOptions.esArticleClient.searchDocuments({"limit" : 10000, "sourceCategory" : [profile]}, highlight=False)["documents"]
 
         try:
             os.mkdir(os.path.join(folderPath, profile))

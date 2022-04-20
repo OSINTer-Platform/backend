@@ -6,7 +6,6 @@ from datetime import datetime
 from OSINTmodules import *
 
 from scripts import configOptions
-esClient = OSINTelastic.returnArticleDBConn(configOptions)
 
 def main(fileName):
     with open(fileName, "r") as exportFile:
@@ -17,5 +16,5 @@ def main(fileName):
             article[timeValue] = datetime.strptime(article[timeValue], "%Y-%m-%dT%H:%M:%S%z")
 
         currentArticleObject = OSINTobjects.Article(**article)
-        if not esClient.existsInDB(currentArticleObject.url):
-            esClient.saveDocument(currentArticleObject)
+        if not configOptions.esArticleClient.existsInDB(currentArticleObject.url):
+            configOptions.esArticleClient.saveDocument(currentArticleObject)

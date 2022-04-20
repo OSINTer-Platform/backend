@@ -18,10 +18,6 @@ from datetime import datetime, timezone
 
 from searchtweets import load_credentials
 
-
-esArticleClient = OSINTelastic.returnArticleDBConn(configOptions)
-esTweetClient = OSINTelastic.returnTweetDBConn(configOptions)
-
 class customMD(MarkdownConverter):
     def convert_figure(self, el, text, convert_as_inline):
         self.process_tag(el, False, children_only=True)
@@ -84,7 +80,7 @@ def handleSingleArticle(URL, currentProfile):
 
     currentArticle.inserted_at = datetime.now(timezone.utc)
 
-    return esArticleClient.saveDocument(currentArticle)
+    return configOptions.esArticleClient.saveDocument(currentArticle)
 
 def scrapeUsingProfile(articleURLList, profileName):
     if not articleURLList:
@@ -112,7 +108,7 @@ def scrapeArticles():
     filteredArticleURLCollection = {}
 
     for articleSource in articleURLCollection:
-        filteredArticleURLCollection[articleSource] = esArticleClient.filterDocumentList(articleURLCollection[articleSource])
+        filteredArticleURLCollection[articleSource] = configOptions.esArticleClient.filterDocumentList(articleURLCollection[articleSource])
 
     numberOfArticleAfterFilter = sum ([ len(filteredArticleURLCollection[profileName]) for profileName in filteredArticleURLCollection ])
 
@@ -134,7 +130,7 @@ def getTweets(majorAuthorList, credentials, chunckSize=10):
     for authorList in chunckedAuthorList:
         configOptions.logger.debug(f"Scraping tweets for these authors: {' '.join(authorlist)}")
         try:
-            lastID = esTweetClient.getLastDocument(authorList).twitter_id
+            lastID = configOptions.esTweetClient.getLastDocument(authorList).twitter_id
             tweetData = OSINTtwitter.gatherTweetData(credentials, authorList, lastID)
         except AttributeError:
             configOptions.logger.debug("These are the first tweets by these authors.")
@@ -170,7 +166,7 @@ def scrapeTweets(authorListPath=Path("./tools/twitter_authors")):
 
         configOptions.logger.debug("Saving the tweets.\n")
         for tweet in tweetList:
-            tweetIDs.append(esTweetClient.saveDocument(tweet))
+            tweetIDs.append(configOptions.esTweetClient.saveDocument(tweet))
 
         return tweetIDs
     else:

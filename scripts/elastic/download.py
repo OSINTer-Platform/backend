@@ -6,8 +6,6 @@ from OSINTmodules import *
 
 from scripts import configOptions
 
-esClient = OSINTelastic.returnArticleDBConn(configOptions)
-
 def main(remoteEsAddress):
 
     remoteEsConn = OSINTelastic.createESConn(remoteEsAddress)
@@ -22,5 +20,5 @@ def main(remoteEsAddress):
     configOptions.logger.info("Uploading articles")
 
     for article in articles["documents"]:
-        if not esClient.existsInDB(article.url):
-            esClient.saveDocument(article)
+        if not configOptions.esArticleClient.existsInDB(article.url):
+            configOptions.esArticleClient.saveDocument(article)

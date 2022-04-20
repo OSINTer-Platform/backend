@@ -6,10 +6,8 @@ from OSINTmodules import *
 
 from scripts import configOptions
 
-esClient = OSINTelastic.returnArticleDBConn(configOptions)
-
 def main(fileName):
-    articles = esClient.searchDocuments({"limit" : 10000})
+    articles = configOptions.esArticleClient.searchDocuments({"limit" : 10000})
 
     articleDicts = []
 
