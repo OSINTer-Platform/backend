@@ -5,10 +5,10 @@ from time import sleep
 
 from OSINTmodules import *
 from scripts.scrapeAndStore import scrapeUsingProfile, gatherArticleURLs
+from scripts import configOptions
 
 import elasticsearch
 
-configOptions = OSINTconfig.backendConfig()
 esClient = OSINTelastic.returnArticleDBConn(configOptions)
 
 

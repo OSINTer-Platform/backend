@@ -12,12 +12,12 @@ from bs4 import BeautifulSoup as bs
 from markdownify import MarkdownConverter
 
 from OSINTmodules import *
+from scripts import configOptions
 
 from datetime import datetime, timezone
 
 from searchtweets import load_credentials
 
-configOptions = OSINTconfig.backendConfig()
 
 esArticleClient = OSINTelastic.returnArticleDBConn(configOptions)
 esTweetClient = OSINTelastic.returnTweetDBConn(configOptions)

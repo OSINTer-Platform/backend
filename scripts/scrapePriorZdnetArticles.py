@@ -9,8 +9,7 @@ from OSINTmodules.OSINTprofiles import getProfiles
 from OSINTmodules import *
 
 from scripts.scrapeAndStore import scrapeUsingProfile
-
-configOptions = OSINTconfig.backendConfig()
+from scripts import configOptions
 
 def main():
     OSINTelastic.configureElasticsearch(configOptions.ELASTICSEARCH_URL, configOptions.ELASTICSEARCH_CERT_PATH, "osinter_zdnet")

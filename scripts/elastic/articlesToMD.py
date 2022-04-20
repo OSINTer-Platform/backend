@@ -2,7 +2,7 @@ import os
 
 from OSINTmodules import *
 
-configOptions = OSINTconfig.backendConfig()
+from scripts import configOptions
 
 esClient = OSINTelastic.returnArticleDBConn(configOptions)
 

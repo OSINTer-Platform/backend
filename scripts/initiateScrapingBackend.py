@@ -9,9 +9,8 @@ import tarfile
 
 import sqlite3
 
-from OSINTmodules import OSINTelastic, OSINTconfig
-
-configOptions = OSINTconfig.backendConfig()
+from OSINTmodules import OSINTelastic
+from scripts import configOptions
 
 def createFolder(folderName):
     if not os.path.isdir(Path("./" + folderName)):
