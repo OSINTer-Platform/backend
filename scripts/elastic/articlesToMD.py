@@ -17,7 +17,7 @@ def main(folderPath):
     for profile in profiles:
 
         configOptions.logger.info(f"Downloading list of articles for {profile}")
-        articles = configOptions.esArticleClient.searchDocuments({"limit" : 10000, "sourceCategory" : [profile]}, highlight=False)["documents"]
+        articles = configOptions.esArticleClient.queryDocuments(OSINTelastic.searchQuery(limit = 10_000, sourceCategory = [profile]))["documents"]
 
         try:
             os.mkdir(os.path.join(folderPath, profile))

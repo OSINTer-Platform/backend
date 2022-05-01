@@ -7,7 +7,7 @@ from OSINTmodules import *
 from scripts import configOptions
 
 def main(fileName):
-    articles = configOptions.esArticleClient.searchDocuments({"limit" : 10000})
+    articles = configOptions.esArticleClient.queryDocuments()
 
     articleDicts = []
 

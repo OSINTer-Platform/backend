@@ -13,7 +13,7 @@ def main(remoteEsAddress):
 
     configOptions.logger.info("Downloading articles...")
 
-    articles = remoteEsClient.searchDocuments({"limit" : 10000})
+    articles = remoteEsClient.queryDocuments(OSINTelastic.searchQuery(limit = 10_000))
 
     configOptions.logger.info(len(articles["documents"]))
     configOptions.logger.info(f"Downloaded {str(articles['result_number'])} articles.")

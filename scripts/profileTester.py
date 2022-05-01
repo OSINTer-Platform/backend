@@ -19,7 +19,7 @@ def main(profile, url=""):
 
     sleep(1)
 
-    currentArticles = configOptions.esClient.searchDocuments({"IDs" : articleIDs})
+    currentArticles = configOptions.esClient.queryDocuments(OSINTelastic.searchQuery(IDs = articleIDs))
 
     for ID in articleIDs:
         os.system(f"firefox http://localhost:5000/renderMarkdownById/{ID}")
