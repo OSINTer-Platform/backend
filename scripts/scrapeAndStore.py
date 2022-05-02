@@ -44,7 +44,7 @@ def gatherArticleURLs(profiles):
                 articleURLs[profile["source"]["profileName"]] = OSINTscraping.scrapeArticleURLs(profile["source"]['address'], profile["source"]['newsPath'], profile["source"]['scrapingTargets'], profile["source"]['profileName'])
 
         except Exception as e:
-            configOptions.logger.exception('Problem with gathering URLs for the "{profile["source"]["profileName"]}" profile. Skipping for now.')
+            configOptions.logger.exception(f'Problem with gathering URLs for the "{profile["source"]["profileName"]}" profile. Skipping for now.')
 
     return articleURLs
 
