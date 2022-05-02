@@ -12,9 +12,6 @@ def main(fileName):
         articles = json.load(exportFile)
 
     for article in articles:
-        for timeValue in ["publish_date", "inserted_at"]:
-            article[timeValue] = datetime.strptime(article[timeValue], "%Y-%m-%dT%H:%M:%S%z")
-
         currentArticleObject = OSINTobjects.Article(**article)
         if not configOptions.esArticleClient.existsInDB(currentArticleObject.url):
             configOptions.esArticleClient.saveDocument(currentArticleObject)
