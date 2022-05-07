@@ -128,7 +128,7 @@ def getTweets(majorAuthorList, credentials, chunckSize=10):
     tweets = []
 
     for authorList in chunckedAuthorList:
-        configOptions.logger.debug(f"Scraping tweets for these authors: {' '.join(authorlist)}")
+        configOptions.logger.debug(f"Scraping tweets for these authors: {' '.join(authorList)}")
         try:
             lastID = configOptions.esTweetClient.getLastDocument(authorList).twitter_id
             tweetData = OSINTtwitter.gatherTweetData(credentials, authorList, lastID)
