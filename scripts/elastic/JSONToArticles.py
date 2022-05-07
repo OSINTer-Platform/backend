@@ -12,6 +12,6 @@ def main(fileName):
         articles = json.load(exportFile)
 
     for article in articles:
-        currentArticleObject = OSINTobjects.Article(**article)
+        currentArticleObject = OSINTobjects.FullArticle(**article)
         if not configOptions.esArticleClient.existsInDB(currentArticleObject.url):
             configOptions.esArticleClient.saveDocument(currentArticleObject)

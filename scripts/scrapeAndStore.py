@@ -58,7 +58,7 @@ def handleSingleArticle(URL, currentProfile):
 
     articleMetaInformation = OSINTextract.extractMetaInformation(articleSoup, currentProfile['scraping']['meta'], currentProfile['source']['address'])
 
-    currentArticle = OSINTobjects.Article(url = URL, profile = currentProfile["source"]["profileName"], source = currentProfile["source"]["name"], **articleMetaInformation)
+    currentArticle = OSINTobjects.FullArticle(url = URL, profile = currentProfile["source"]["profileName"], source = currentProfile["source"]["name"], **articleMetaInformation)
 
     articleText, articleClearText = OSINTextract.extractArticleContent(currentProfile['scraping']['content'], articleSoup)
 
@@ -139,7 +139,7 @@ def getTweets(majorAuthorList, credentials, chunckSize=10):
         if tweetData:
             configOptions.logger.debug("Converting twitter data to python objects.")
             for tweet in OSINTtwitter.processTweetData(tweetData):
-                tweets.append(OSINTobjects.Tweet(**tweet))
+                tweets.append(OSINTobjects.FullTweet(**tweet))
         else:
             configOptions.logger.debug("No tweets was found.")
             return []
