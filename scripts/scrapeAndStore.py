@@ -9,7 +9,7 @@ from pathlib import Path
 import os
 
 from bs4 import BeautifulSoup as bs
-from markdownify import markdownify
+from markdownify import MarkdownConverter
 
 from OSINTmodules import *
 
@@ -18,6 +18,11 @@ from datetime import datetime, timezone
 configOptions = OSINTconfig.backendConfig()
 
 esClient = OSINTelastic.elasticDB(configOptions.ELASTICSEARCH_URL, configOptions.ELASTICSEARCH_CERT_PATH, configOptions.ELASTICSEARCH_ARTICLE_INDEX)
+
+class customMD(MarkdownConverter):
+    def convert_figure(self, el, text, convert_as_inline):
+        self.process_tag(el, False, children_only=True)
+        return text + "\n\n"
 
 def handleSingleArticle(URL, currentProfile):
 
@@ -37,7 +42,7 @@ def handleSingleArticle(URL, currentProfile):
     articleClearText = OSINTtext.cleanText(articleClearText)
 
     currentArticle.content = articleClearText
-    currentArticle.formatted_content = markdownify(articleText, heading_style="atx")
+    currentArticle.formatted_content = customMD(heading_style="closed_atx").convert(articleText)
 
     # Generate the tags
     currentArticle.tags["automatic"] = OSINTtext.generateTags(OSINTtext.tokenizeText(articleClearText))
