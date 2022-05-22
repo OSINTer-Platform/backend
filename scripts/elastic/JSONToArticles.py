@@ -7,6 +7,7 @@ from OSINTmodules import *
 
 from scripts import configOptions
 
+
 def main(fileName):
     with open(fileName, "r") as exportFile:
         articles = json.load(exportFile)

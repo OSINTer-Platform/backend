@@ -4,6 +4,7 @@ from OSINTmodules import *
 
 from scripts import configOptions
 
+
 def main(folderPath):
     try:
         os.mkdir(os.path.join(folderPath, "MDArticles"))
@@ -17,7 +18,11 @@ def main(folderPath):
     for profile in profiles:
 
         configOptions.logger.info(f"Downloading list of articles for {profile}")
-        articles = configOptions.esArticleClient.queryDocuments(OSINTelastic.searchQuery(complete = True, limit = 10_000, sourceCategory = [profile]))["documents"]
+        articles = configOptions.esArticleClient.queryDocuments(
+            OSINTelastic.searchQuery(
+                complete=True, limit=10_000, sourceCategory=[profile]
+            )
+        )["documents"]
 
         try:
             os.mkdir(os.path.join(folderPath, profile))
@@ -28,5 +33,7 @@ def main(folderPath):
         for article in articles:
             articleMD = OSINTfiles.convertArticleToMD(article)
 
-            with open(os.path.join(folderPath, profile, f"{article.id}.md"), "w") as articleFile:
+            with open(
+                os.path.join(folderPath, profile, f"{article.id}.md"), "w"
+            ) as articleFile:
                 articleFile.write(articleMD.getvalue())

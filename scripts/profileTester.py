@@ -9,9 +9,10 @@ from scripts import configOptions
 
 import elasticsearch
 
+
 def main(profile, url=""):
     if url:
-        articleURLCollection = {profile : [url]}
+        articleURLCollection = {profile: [url]}
     else:
         articleURLCollection = gatherArticleURLs([OSINTprofiles.getProfiles(profile)])
 
@@ -19,15 +20,15 @@ def main(profile, url=""):
 
     sleep(1)
 
-    currentArticles = configOptions.esClient.queryDocuments(OSINTelastic.searchQuery(IDs = articleIDs))
+    currentArticles = configOptions.esClient.queryDocuments(
+        OSINTelastic.searchQuery(IDs=articleIDs)
+    )
 
     for ID in articleIDs:
         os.system(f"firefox http://localhost:5000/renderMarkdownById/{ID}")
 
     for article in currentArticles["documents"]:
         os.system(f"firefox {article.url}")
-
-
 
 
 if __name__ == "__main__":
