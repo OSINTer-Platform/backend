@@ -15,7 +15,7 @@ def main(fileName):
     articleDicts = []
 
     for article in articles["documents"]:
-        articleDicts.append(article.as_dict())
+        articleDicts.append(article.dict())
 
     with open(fileName, "w") as exportFile:
-        json.dump(articleDicts, exportFile)
+        json.dump(articleDicts, exportFile, default=str)
