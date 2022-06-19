@@ -2,14 +2,14 @@
 
 import json
 
-from OSINTmodules import *
+from modules import *
 
 from scripts import configOptions
 
 
 def main(fileName):
     articles = configOptions.esArticleClient.queryDocuments(
-        OSINTelastic.searchQuery(limit=10_000, complete=True)
+        elastic.searchQuery(limit=10_000, complete=True)
     )
 
     articleDicts = []

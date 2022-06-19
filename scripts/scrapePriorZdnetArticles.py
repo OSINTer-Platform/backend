@@ -5,15 +5,15 @@ import json
 
 import os
 
-from OSINTmodules.OSINTprofiles import getProfiles
-from OSINTmodules import *
+from modules.profiles import getProfiles
+from modules import *
 
 from scripts.scrapeAndStore import scrapeUsingProfile
 from scripts import configOptions
 
 
 def main():
-    OSINTelastic.configureElasticsearch(
+    elastic.configureElasticsearch(
         configOptions.ELASTICSEARCH_URL,
         configOptions.ELASTICSEARCH_CERT_PATH,
         "osinter_zdnet",
@@ -32,7 +32,7 @@ def main():
         with open("./progress.txt", "w") as file:
             file.write(str(i))
         configOptions.logger.info("Scraping page {}.".format(str(i)))
-        articleURLList = OSINTscraping.scrapeArticleURLs(
+        articleURLList = scraping.scrapeArticleURLs(
             "https://www.zdnet.com/",
             "https://www.zdnet.com/topic/security/{}/".format(str(i)),
             zdnetProfile["source"]["scrapingTargets"],

@@ -3,7 +3,7 @@
 import json
 from datetime import datetime
 
-from OSINTmodules import *
+from modules import *
 
 from scripts import configOptions
 
@@ -13,6 +13,6 @@ def main(fileName):
         articles = json.load(exportFile)
 
     for article in articles:
-        currentArticleObject = OSINTobjects.FullArticle(**article)
+        currentArticleObject = objects.FullArticle(**article)
         if not configOptions.esArticleClient.existsInDB(currentArticleObject.url):
             configOptions.esArticleClient.saveDocument(currentArticleObject)

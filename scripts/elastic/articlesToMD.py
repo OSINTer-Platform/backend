@@ -1,6 +1,6 @@
 import os
 
-from OSINTmodules import *
+from modules import *
 
 from scripts import configOptions
 
@@ -19,7 +19,7 @@ def main(folderPath):
 
         configOptions.logger.info(f"Downloading list of articles for {profile}")
         articles = configOptions.esArticleClient.queryDocuments(
-            OSINTelastic.searchQuery(
+            elastic.searchQuery(
                 complete=True, limit=10_000, sourceCategory=[profile]
             )
         )["documents"]
@@ -31,7 +31,7 @@ def main(folderPath):
 
         configOptions.logger.info(f"Converting {len(articles)} articles for {profile}")
         for article in articles:
-            articleMD = OSINTfiles.convertArticleToMD(article)
+            articleMD = files.convertArticleToMD(article)
 
             with open(
                 os.path.join(folderPath, profile, f"{article.id}.md"), "w"

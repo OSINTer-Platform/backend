@@ -2,20 +2,20 @@
 
 import os
 
-from OSINTmodules import *
+from modules import *
 
 from scripts import configOptions
 
 
 def main(remoteEsAddress):
 
-    remoteEsConn = OSINTelastic.createESConn(remoteEsAddress)
-    remoteEsClient = OSINTelastic.elasticDB(remoteEsConn, "osinter_articles")
+    remoteEsConn = elastic.createESConn(remoteEsAddress)
+    remoteEsClient = elastic.elasticDB(remoteEsConn, "osinter_articles")
 
     configOptions.logger.info("Downloading articles...")
 
     articles = remoteEsClient.queryDocuments(
-        OSINTelastic.searchQuery(limit=10_000, complete=False)
+        elastic.searchQuery(limit=10_000, complete=False)
     )
 
     configOptions.logger.info(len(articles["documents"]))

@@ -11,7 +11,7 @@ import os
 from bs4 import BeautifulSoup as bs
 from markdownify import MarkdownConverter
 
-from OSINTmodules import *
+from modules import *
 from scripts import configOptions
 
 from datetime import datetime, timezone
@@ -42,7 +42,7 @@ def gatherArticleURLs(profiles):
                 configOptions.logger.debug("Using RSS for gathering links.\n")
                 articleURLs[
                     profile["source"]["profileName"]
-                ] = OSINTscraping.RSSArticleURLs(
+                ] = scraping.RSSArticleURLs(
                     profile["source"]["newsPath"], profile["source"]["profileName"]
                 )
 
@@ -51,7 +51,7 @@ def gatherArticleURLs(profiles):
                 configOptions.logger.debug("Using scraping for gathering links.\n")
                 articleURLs[
                     profile["source"]["profileName"]
-                ] = OSINTscraping.scrapeArticleURLs(
+                ] = scraping.scrapeArticleURLs(
                     profile["source"]["address"],
                     profile["source"]["newsPath"],
                     profile["source"]["scrapingTargets"],
@@ -70,27 +70,27 @@ def handleSingleArticle(URL, currentProfile):
 
     # Scrape the whole article source based on how the profile says
     scrapingTypes = currentProfile["scraping"]["type"].split(";")
-    articleSource = OSINTscraping.scrapePageDynamic(URL, scrapingTypes)
+    articleSource = scraping.scrapePageDynamic(URL, scrapingTypes)
     articleSoup = bs(articleSource, "html.parser")
 
-    articleMetaInformation = OSINTextract.extractMetaInformation(
+    articleMetaInformation = extract.extractMetaInformation(
         articleSoup,
         currentProfile["scraping"]["meta"],
         currentProfile["source"]["address"],
     )
 
-    currentArticle = OSINTobjects.FullArticle(
+    currentArticle = objects.FullArticle(
         url=URL,
         profile=currentProfile["source"]["profileName"],
         source=currentProfile["source"]["name"],
         **articleMetaInformation,
     )
 
-    articleText, articleClearText = OSINTextract.extractArticleContent(
+    articleText, articleClearText = extract.extractArticleContent(
         currentProfile["scraping"]["content"], articleSoup
     )
 
-    articleClearText = OSINTtext.cleanText(articleClearText)
+    articleClearText = text.cleanText(articleClearText)
 
     currentArticle.content = articleClearText
     currentArticle.formatted_content = customMD(heading_style="closed_atx").convert(
@@ -98,18 +98,18 @@ def handleSingleArticle(URL, currentProfile):
     )
 
     # Generate the tags
-    currentArticle.tags["automatic"] = OSINTtext.generateTags(
-        OSINTtext.tokenizeText(articleClearText)
+    currentArticle.tags["automatic"] = text.generateTags(
+        text.tokenizeText(articleClearText)
     )
-    currentArticle.tags["interresting"] = OSINTtext.locateObjectsOfInterrest(
+    currentArticle.tags["interresting"] = text.locateObjectsOfInterrest(
         articleClearText
     )
     currentArticle.tags["manual"] = {}
 
     if os.path.isdir(Path("./tools/keywords/")):
         for file in os.listdir(Path("./tools/keywords/")):
-            currentTags = OSINTtext.locateKeywords(
-                OSINTmisc.decodeKeywordsFile(Path(f"./tools/keywords/{file}")),
+            currentTags = text.locateKeywords(
+                misc.decodeKeywordsFile(Path(f"./tools/keywords/{file}")),
                 articleClearText,
             )
             if currentTags != []:
@@ -129,7 +129,7 @@ def scrapeUsingProfile(articleURLList, profileName):
     )
 
     # Loading the profile for the current website
-    currentProfile = OSINTprofiles.getProfiles(profileName)
+    currentProfile = profiles.getProfiles(profileName)
 
     articleIDs = []
 
@@ -144,7 +144,7 @@ def scrapeUsingProfile(articleURLList, profileName):
 
 def scrapeArticles():
     configOptions.logger.debug("Scraping articles from frontpages and RSS feeds")
-    articleURLCollection = gatherArticleURLs(OSINTprofiles.getProfiles())
+    articleURLCollection = gatherArticleURLs(profiles.getProfiles())
 
     configOptions.logger.debug(
         "Removing those articles that have already been stored in the database"
@@ -197,15 +197,15 @@ def getTweets(majorAuthorList, credentials, chunckSize=10):
         )
         try:
             lastID = configOptions.esTweetClient.getLastDocument(authorList).twitter_id
-            tweetData = OSINTtwitter.gatherTweetData(credentials, authorList, lastID)
+            tweetData = twitter.gatherTweetData(credentials, authorList, lastID)
         except AttributeError:
             configOptions.logger.debug("These are the first tweets by these authors.")
-            tweetData = OSINTtwitter.gatherTweetData(credentials, authorList)
+            tweetData = twitter.gatherTweetData(credentials, authorList)
 
         if tweetData:
             configOptions.logger.debug("Converting twitter data to python objects.")
-            for tweet in OSINTtwitter.processTweetData(tweetData):
-                tweets.append(OSINTobjects.FullTweet(**tweet))
+            for tweet in twitter.processTweetData(tweetData):
+                tweets.append(objects.FullTweet(**tweet))
         else:
             configOptions.logger.debug("No tweets was found.")
             return []

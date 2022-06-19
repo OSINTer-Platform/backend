@@ -41,9 +41,9 @@ def main():
     scriptName = selectScript(scriptNames)
 
     if scriptName == "profileTester":
-        from OSINTmodules import OSINTprofiles
+        from modules import profiles
 
-        profileList = OSINTprofiles.getProfiles(justNames=True)
+        profileList = profiles.getProfiles(justNames=True)
 
         print("Available profiles:")
 

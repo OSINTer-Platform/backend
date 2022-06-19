@@ -4,13 +4,13 @@ import os
 
 from pathlib import Path
 
-from OSINTmodules import OSINTmisc
+from modules import misc
 
 
 def main():
     if os.path.isdir(Path("./tools/keywords/")):
         for file in os.listdir(Path("./tools/keywords/")):
-            currentKeywords = OSINTmisc.decodeKeywordsFile(
+            currentKeywords = misc.decodeKeywordsFile(
                 Path(f"./tools/keywords/{file}")
             )
 

@@ -3,7 +3,7 @@
 import os
 from time import sleep
 
-from OSINTmodules import *
+from modules import *
 from scripts.scrapeAndStore import scrapeUsingProfile, gatherArticleURLs
 from scripts import configOptions
 
@@ -14,14 +14,14 @@ def main(profile, url=""):
     if url:
         articleURLCollection = {profile: [url]}
     else:
-        articleURLCollection = gatherArticleURLs([OSINTprofiles.getProfiles(profile)])
+        articleURLCollection = gatherArticleURLs([profiles.getProfiles(profile)])
 
     articleIDs = scrapeUsingProfile(articleURLCollection[profile], profile)
 
     sleep(1)
 
     currentArticles = configOptions.esClient.queryDocuments(
-        OSINTelastic.searchQuery(IDs=articleIDs)
+        elastic.searchQuery(IDs=articleIDs)
     )
 
     for ID in articleIDs:

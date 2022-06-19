@@ -10,7 +10,7 @@ import tarfile
 
 import sqlite3
 
-from OSINTmodules import OSINTelastic
+from modules import elastic
 from scripts import configOptions
 
 
@@ -65,7 +65,7 @@ def main():
     createFolder("logs")
 
     configOptions.logger.info("Configuring elasticsearch")
-    OSINTelastic.configureElasticsearch(configOptions)
+    elastic.configureElasticsearch(configOptions)
 
 
 if __name__ == "__main__":
