@@ -18,6 +18,8 @@ from datetime import datetime, timezone
 
 from searchtweets import load_credentials
 
+from pydantic import ValidationError
+
 
 class customMD(MarkdownConverter):
     def convert_figure(self, el, text, convert_as_inline):
@@ -137,7 +139,11 @@ def scrapeUsingProfile(articleURLList, profileName):
         configOptions.logger.debug(
             f'Scraped article number {i + 1} with the types "{currentProfile["scraping"]["type"]}" and following url: {URL}.'
         )
-        articleIDs.append(handleSingleArticle(URL, currentProfile))
+        try:
+            articleIDs.append(handleSingleArticle(URL, currentProfile))
+        except ValidationError as e:
+            configOptions.logger.error(f'Encountered problem with article with URL "{URL}", skipping for now. Error: {e}')
+
 
     return articleIDs
 
