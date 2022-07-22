@@ -1,34 +1,33 @@
 #!/usr/bin/python3
 
 import os
-from time import sleep
 
 from modules import *
-from scripts.scrapeAndStore import scrapeUsingProfile, gatherArticleURLs
+from scripts.scrapeAndStore import handleSingleArticle, gatherArticleURLs
 from scripts import configOptions
 
-import elasticsearch
 
+def main(profileName, customURL=""):
+    currentProfile = profiles.getProfiles(profileName)
 
-def main(profile, url=""):
-    if url:
-        articleURLCollection = {profile: [url]}
+    if customURL:
+        articleURLCollection = [customURL]
     else:
-        articleURLCollection = gatherArticleURLs([profiles.getProfiles(profile)])
+        articleURLCollection = gatherArticleURLs([currentProfile])[profileName]
 
-    articleIDs = scrapeUsingProfile(articleURLCollection[profile], profile)
+    articles = []
+    for URL in articleURLCollection:
+        configOptions.logger.info(f"Scraping article with URL: {URL}")
+        articles.append(handleSingleArticle(URL, currentProfile))
 
-    sleep(1)
+    articleString = ""
 
-    currentArticles = configOptions.esClient.queryDocuments(
-        elastic.searchQuery(IDs=articleIDs)
-    )
-
-    for ID in articleIDs:
-        os.system(f"firefox http://localhost:5000/renderMarkdownById/{ID}")
-
-    for article in currentArticles["documents"]:
+    for article in articles:
         os.system(f"firefox {article.url}")
+        articleString += files.convertArticleToMD(article).getvalue() + "\n\n"
+
+    with open("./articles.md", "w") as f:
+        f.write(articleString)
 
 
 if __name__ == "__main__":

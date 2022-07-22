@@ -42,9 +42,7 @@ def gatherArticleURLs(profiles):
             # For those were the RSS feed is useful, that will be used
             if profile["source"]["retrivalMethod"] == "rss":
                 configOptions.logger.debug("Using RSS for gathering links.\n")
-                articleURLs[
-                    profile["source"]["profileName"]
-                ] = scraping.RSSArticleURLs(
+                articleURLs[profile["source"]["profileName"]] = scraping.RSSArticleURLs(
                     profile["source"]["newsPath"], profile["source"]["profileName"]
                 )
 
@@ -119,7 +117,7 @@ def handleSingleArticle(URL, currentProfile):
 
     currentArticle.inserted_at = datetime.now(timezone.utc)
 
-    return configOptions.esArticleClient.saveDocument(currentArticle)
+    return currentArticle
 
 
 def scrapeUsingProfile(articleURLList, profileName):
@@ -140,10 +138,14 @@ def scrapeUsingProfile(articleURLList, profileName):
             f'Scraped article number {i + 1} with the types "{currentProfile["scraping"]["type"]}" and following url: {URL}.'
         )
         try:
-            articleIDs.append(handleSingleArticle(URL, currentProfile))
+            currentArticle = handleSingleArticle(URL, currentProfile)
+            articleIDs.append(
+                configOptions.esArticleClient.saveDocument(currentArticle)
+            )
         except ValidationError as e:
-            configOptions.logger.error(f'Encountered problem with article with URL "{URL}", skipping for now. Error: {e}')
-
+            configOptions.logger.error(
+                f'Encountered problem with article with URL "{URL}", skipping for now. Error: {e}'
+            )
 
     return articleIDs
 
