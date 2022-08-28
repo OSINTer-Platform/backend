@@ -15,4 +15,5 @@ def main(fileName):
     for article in articles:
         currentArticleObject = objects.FullArticle(**article)
         if not configOptions.esArticleClient.existsInDB(currentArticleObject.url):
+            currentArticleObject.id = None
             configOptions.esArticleClient.saveDocument(currentArticleObject)
