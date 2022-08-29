@@ -8,6 +8,6 @@ __all__ = [
 
 from modules import config, misc
 
-misc.createFolder("logs")
+misc.create_folder("logs")
 
-configOptions = config.backendConfig()
+config_options = config.BackendConfig()
