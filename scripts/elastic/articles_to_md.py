@@ -13,7 +13,7 @@ def main(folder_path):
 
     folder_path = os.path.join(folder_path, "MDArticles")
     config_options.logger.info("Downloading list of profiles...")
-    profiles = config_options.es_article_client.get_source_category_list_from_db()
+    profiles = config_options.es_article_client.get_unique_values()
 
     for profile in profiles:
 
