@@ -6,6 +6,10 @@ from modules import *
 from scripts.scrape_and_store import handle_single_article, gather_article_urls
 from scripts import config_options
 
+import logging
+
+logger = logging.getLogger("osinter")
+
 
 def main(profile_name, custom_url=""):
     current_profile = profiles.get_profiles(profile_name)
@@ -17,7 +21,7 @@ def main(profile_name, custom_url=""):
 
     articles = []
     for url in article_url_collection:
-        config_options.logger.info(f"Scraping article with URL: {url}")
+        logger.info(f"Scraping article with URL: {url}")
         articles.append(handle_single_article(url, current_profile))
 
     article_string = ""

@@ -20,6 +20,10 @@ from searchtweets import load_credentials
 
 from pydantic import ValidationError
 
+import logging
+
+logger = logging.getLogger("osinter")
+
 
 class custom_md_converter(MarkdownConverter):
     def convert_figure(self, el, text, convert_as_inline):
@@ -34,14 +38,14 @@ def gather_article_urls(profiles):
 
     for profile in profiles:
 
-        config_options.logger.debug(
+        logger.debug(
             f'Gathering URLs for the "{profile["source"]["profile_name"]}" profile.'
         )
 
         try:
             # For those were the RSS feed is useful, that will be used
             if profile["source"]["retrival_method"] == "rss":
-                config_options.logger.debug("Using RSS for gathering links.\n")
+                logger.debug("Using RSS for gathering links.\n")
                 article_urls[
                     profile["source"]["profile_name"]
                 ] = scraping.get_article_urls_from_rss(
@@ -50,7 +54,7 @@ def gather_article_urls(profiles):
 
             # For basically everything else scraping will be used
             elif profile["source"]["retrival_method"] == "scraping":
-                config_options.logger.debug("Using scraping for gathering links.\n")
+                logger.debug("Using scraping for gathering links.\n")
                 article_urls[
                     profile["source"]["profile_name"]
                 ] = scraping.scrape_article_urls(
@@ -61,7 +65,7 @@ def gather_article_urls(profiles):
                 )
 
         except Exception as e:
-            config_options.logger.exception(
+            logger.exception(
                 f'Problem with gathering URLs for the "{profile["source"]["profile_name"]}" profile. Skipping for now.'
             )
 
@@ -126,7 +130,7 @@ def scrape_using_profile(article_url_list, profile_name):
     if not article_url_list:
         return []
 
-    config_options.logger.info(
+    logger.info(
         f'Scraping {len(article_url_list)} articles using the "{profile_name}" profile.'
     )
 
@@ -136,7 +140,7 @@ def scrape_using_profile(article_url_list, profile_name):
     article_ids = []
 
     for i, url in enumerate(article_url_list):
-        config_options.logger.debug(
+        logger.debug(
             f'Scraped article number {i + 1} with the types "{current_profile["scraping"]["type"]}" and following URL: {url}.'
         )
         try:
@@ -145,7 +149,7 @@ def scrape_using_profile(article_url_list, profile_name):
                 config_options.es_article_client.save_document(current_article)
             )
         except ValidationError as e:
-            config_options.logger.error(
+            logger.error(
                 f'Encountered problem with article with URL "{url}", skipping for now. Error: {e}'
             )
 
@@ -153,10 +157,10 @@ def scrape_using_profile(article_url_list, profile_name):
 
 
 def scrape_articles():
-    config_options.logger.debug("Scraping articles from frontpages and RSS feeds")
+    logger.debug("Scraping articles from frontpages and RSS feeds")
     article_url_collection = gather_article_urls(profiles.get_profiles())
 
-    config_options.logger.debug(
+    logger.debug(
         "Removing those articles that have already been stored in the database"
     )
 
@@ -177,12 +181,10 @@ def scrape_articles():
     )
 
     if article_number_after_filter == 0:
-        config_options.logger.info(
-            "All articles seems to have already been stored, exiting."
-        )
+        logger.info("All articles seems to have already been stored, exiting.")
         return
     else:
-        config_options.logger.info(
+        logger.info(
             f"Found {article_number_after_filter} articles left to scrape, will begin that process now"
         )
 
@@ -202,31 +204,29 @@ def gather_tweets(major_author_list, credentials, chunck_size=10):
     tweets = []
 
     for author_list in chuncked_author_list:
-        config_options.logger.debug(
-            f"Scraping tweets for these authors: {' '.join(author_list)}"
-        )
+        logger.debug(f"Scraping tweets for these authors: {' '.join(author_list)}")
         try:
             last_id = config_options.es_tweet_client.get_last_document(
                 author_list
             ).twitter_id
             tweet_data = twitter.gather_tweet_data(credentials, author_list, last_id)
         except AttributeError:
-            config_options.logger.debug("These are the first tweets by these authors.")
+            logger.debug("These are the first tweets by these authors.")
             tweet_data = twitter.gather_tweet_data(credentials, author_list)
 
         if tweet_data:
-            config_options.logger.debug("Converting twitter data to python objects.")
+            logger.debug("Converting twitter data to python objects.")
             for tweet in twitter.process_tweet_data(tweet_data):
                 tweets.append(objects.FullTweet(**tweet))
         else:
-            config_options.logger.debug("No tweets was found.")
+            logger.debug("No tweets was found.")
             return []
 
     return tweets
 
 
 def scrape_tweets(author_list_path=Path("./tools/twitter_authors")):
-    config_options.logger.debug("Trying to load twitter credentials and authorlist.")
+    logger.debug("Trying to load twitter credentials and authorlist.")
     if os.path.isfile(author_list_path) and os.path.isfile(
         config_options.TWITTER_CREDENTIAL_PATH
     ):
@@ -243,23 +243,19 @@ def scrape_tweets(author_list_path=Path("./tools/twitter_authors")):
                 # Splitting by # to allow for comments
                 author_list.append(line.split("#")[0].strip())
 
-        config_options.logger.debug(
-            "Succesfully loaded twitter credentials and authorlist."
-        )
+        logger.debug("Succesfully loaded twitter credentials and authorlist.")
 
         tweet_ids = []
 
         tweet_list = gather_tweets(author_list, credentials)
 
-        config_options.logger.debug("Saving the tweets.\n")
+        logger.debug("Saving the tweets.\n")
         for tweet in tweet_list:
             tweet_ids.append(config_options.es_tweet_client.save_document(tweet))
 
         return tweet_ids
     else:
-        config_options.logger.debug(
-            "Couldn't load twitter credentials and authorlist.\n"
-        )
+        logger.debug("Couldn't load twitter credentials and authorlist.\n")
         return None
 
 
@@ -267,13 +263,11 @@ def main():
 
     for scraping_function in [scrape_tweets, scrape_articles]:
         try:
-            config_options.logger.info(
-                f'Running the "{scraping_function.__name__}" function.'
-            )
+            logger.info(f'Running the "{scraping_function.__name__}" function.')
             scraping_function()
 
         except Exception as e:
-            config_options.logger.critical(
+            logger.critical(
                 f'Critical error prevented running the "{scraping_function.__name__}".',
                 exc_info=True,
             )

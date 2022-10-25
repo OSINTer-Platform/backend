@@ -13,6 +13,10 @@ import sqlite3
 from modules import elastic
 from scripts import config_options
 
+import logging
+
+logger = logging.getLogger("osinter")
+
 # Mozilla will have an api endpoint giving a lot of information about the latest releases for the geckodriver, from which the url for the linux 64 bit has to be extracted
 def extract_driver_url():
     driver_details = json.loads(
@@ -35,11 +39,11 @@ def download_driver(driver_url):
 
 def main():
 
-    config_options.logger.info("Downloading and extracting the geckodriver...")
+    logger.info("Downloading and extracting the geckodriver...")
 
     download_driver(extract_driver_url())
 
-    config_options.logger.info("Configuring elasticsearch")
+    logger.info("Configuring elasticsearch")
     elastic.configure_elasticsearch(config_options)
 
 
