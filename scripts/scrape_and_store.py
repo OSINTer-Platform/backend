@@ -30,6 +30,14 @@ class custom_md_converter(MarkdownConverter):
         self.process_tag(el, False, children_only=True)
         return text + "\n\n"
 
+    def convert_a(self, el, text, convert_as_inline):
+        try:
+            del el["title"]
+        except KeyError:
+            pass
+
+        return super().convert_a(el, text, convert_as_inline)
+
 
 # Function for gathering list of URLs for articles from newssite
 def gather_article_urls(profiles):
