@@ -8,6 +8,7 @@ __all__ = [
 
 from modules import config, misc
 
-misc.createFolder("logs")
+misc.create_folder("logs")
+config.configure_logger("osinter")
 
-configOptions = config.backendConfig()
+config_options = config.BackendConfig()

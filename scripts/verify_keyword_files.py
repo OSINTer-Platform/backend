@@ -10,16 +10,16 @@ from modules import misc
 def main():
     if os.path.isdir(Path("./tools/keywords/")):
         for file in os.listdir(Path("./tools/keywords/")):
-            currentKeywords = misc.decodeKeywordsFile(
+            current_keywords = misc.decode_keywords_file(
                 Path(f"./tools/keywords/{file}")
             )
 
-            for keywordCollection in currentKeywords:
+            for keyword_collection in current_keywords:
                 try:
                     test = [
-                        keywordCollection["keywords"],
-                        keywordCollection["tag"],
-                        keywordCollection["proximity"],
+                        keyword_collection["keywords"],
+                        keyword_collection["tag"],
+                        keyword_collection["proximity"],
                     ]
 
                     if (
@@ -27,9 +27,9 @@ def main():
                         or not isinstance(test[1], str)
                         or not isinstance(test[0], list)
                     ):
-                        print(f"Error with {keywordCollection}")
+                        print(f"Error with {keyword_collection}")
                 except:
-                    print(f"Error with {keywordCollection}")
+                    print(f"Error with {keyword_collection}")
     else:
         print("No ḱeyword files were found")
         exit()
