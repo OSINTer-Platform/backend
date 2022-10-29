@@ -27,18 +27,50 @@ def initiate_db():
     logger.info("Configuring elasticsearch")
     configure_elasticsearch(config_options)
 
-@app.command()
-def profile_tester():
-    profile_list: list[str] = profiles.get_profiles(just_names=True)
 
-    print("Available profiles:")
+def get_profile_list() -> list[str]:
+    profile_list: list[str] = get_profiles(just_names=True)
+    profile_list.sort()
+
+    return profile_list
+
+
+def get_profile_prompt() -> str:
+    profile_list: list[str] = get_profile_list()
+
+    ret_val: str = ""
 
     for i, profile_name in enumerate(profile_list):
-        print(f"{str(i)}: {profile_name}")
+        ret_val += f"{str(i)}: {profile_name}\n"
 
-    profile: str = profile_list[int(typer.prompt("Which profile do you want to test? "))]
+    ret_val += "Available profiles"
 
-    url: str = typer.prompt("Enter specific URL or leave blank for scraping 10 urls by itself")
+    return ret_val
+
+
+def calculate_profile(value: str):
+    profile_list: list[str] = get_profile_list()
+
+    try:
+        return get_profile_list()[int(value)]
+    except ValueError:
+        if value in profile_list:
+            return value
+        else:
+            raise typer.BadParameter(
+                f'"{value}" was not recognized amongst the available profiles'
+            )
+
+
+@app.command()
+def test_profile(
+    profile: str = typer.Option(
+        ..., prompt=get_profile_prompt(), callback=calculate_profile
+    ),
+    url: str = typer.Option(
+        "", prompt="Enter specific URL or leave blank for scraping 10 urls by itself"
+    ),
+):
 
     profile_tester(profile, url)
 
