@@ -10,7 +10,7 @@ import tarfile
 
 import sqlite3
 
-from modules import elastic
+from modules.config import configure_elasticsearch
 from scripts import config_options
 
 import logging
@@ -44,7 +44,7 @@ def main():
     download_driver(extract_driver_url())
 
     logger.info("Configuring elasticsearch")
-    elastic.configure_elasticsearch(config_options)
+    configure_elasticsearch(config_options)
 
 
 if __name__ == "__main__":
