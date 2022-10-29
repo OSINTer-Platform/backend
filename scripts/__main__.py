@@ -11,12 +11,14 @@ from modules.profiles import get_profiles
 import os
 
 import logging
+
 logger = logging.getLogger("osinter")
 
 import typer
 
 app = typer.Typer(no_args_is_help=True)
 app.add_typer(elastic_app, name="elastic", no_args_is_help=True)
+
 
 @app.command()
 def initiate_db():
@@ -73,6 +75,7 @@ def test_profile(
 ):
 
     profile_tester(profile, url)
+
 
 @app.command()
 def verify_keywords():

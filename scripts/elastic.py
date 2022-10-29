@@ -11,10 +11,11 @@ import typer
 
 app = typer.Typer()
 
+
 @app.command()
 def articles_to_json(export_filename: str):
     articles = config_options.es_article_client.query_documents(
-        SearchQuery(limit = 0, complete=True)
+        SearchQuery(limit=0, complete=True)
     )
 
     article_dicts = []
@@ -24,6 +25,7 @@ def articles_to_json(export_filename: str):
 
     with open(export_filename, "w") as export_file:
         json.dump(article_dicts, export_file, default=str)
+
 
 @app.command()
 def json_to_articles(import_filename: str):
@@ -73,4 +75,3 @@ def articles_to_md(destination: str):
                 os.path.join(folder_path, profile, f"{article.id}.md"), "w"
             ) as article_file:
                 article_file.write(article_md.getvalue())
-
