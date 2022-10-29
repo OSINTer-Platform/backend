@@ -7,6 +7,10 @@ from modules.elastic import SearchQuery
 from modules.objects import FullArticle
 from modules.files import convert_article_to_md
 
+import logging
+
+logger = logging.getLogger("osinter")
+
 import typer
 
 app = typer.Typer()

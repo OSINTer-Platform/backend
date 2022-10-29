@@ -80,9 +80,9 @@ def test_profile(
 @app.command()
 def verify_keywords():
     if os.path.isdir(os.path.join("tools", "keywords")):
-        for file in os.listdir(os.path.join("tools" "keywords")):
+        for file in os.listdir(os.path.join("tools", "keywords")):
             current_keywords = decode_keywords_file(
-                os.path.join("tools", "keywords", "{file}")
+                os.path.join("tools", "keywords", file)
             )
 
             for keyword_collection in current_keywords:
