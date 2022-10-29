@@ -1,102 +1,77 @@
-#!/usr/bin/python3
+from scripts.scrape_and_store import main as scrape
+from scripts.profile_tester import main as profile_tester
 
-from pathlib import Path
+from . import config_options
+from .elastic import app as elastic_app
 
-import scripts
-from scripts import *
-from scripts.elastic import *
+from modules.config import configure_elasticsearch
+from modules.misc import download_driver, extract_driver_url, decode_keywords_file
+from modules.profiles import get_profiles
 
+import os
 
-def select_script(script_names):
-    print("Which script do you want ro run?")
+import logging
+logger = logging.getLogger("osinter")
 
-    for i, script in enumerate(script_names):
-        print(f"{str(i)}. {script[1]}")
+import typer
 
-    try:
-        script_number = int(input("Write a number: "))
-    except:
-        print("It doesn't look like you entered a number.")
-        exit()
+app = typer.Typer(no_args_is_help=True)
+app.add_typer(elastic_app, name="elastic", no_args_is_help=True)
 
-    try:
-        return script_names[script_number][0]
-    except IndexError:
-        print(
-            f"The number you entered doesn't correspond to a script, it should be between 0 and {len(script_names) - 1}"
-        )
-        exit()
+@app.command()
+def initiate_db():
+    logger.info("Downloading and extracting the geckodriver...")
 
+    download_driver(extract_driver_url())
 
-def main():
-    script_names = [
-        ("initiate_scraping_backend", "Intiate the OSINTer backend"),
-        ("profile_tester", "Test a profile"),
-        ("scrape_and_store", "Scrape articles based on available profiles"),
-        ("verify_keyword_files", "Verify the available keyword files"),
-        ("elastic", "Run a series of elasticsearch-based scripts"),
-    ]
+    logger.info("Configuring elasticsearch")
+    configure_elasticsearch(config_options)
 
-    script_name = select_script(script_names)
+@app.command()
+def profile_tester():
+    profile_list: list[str] = profiles.get_profiles(just_names=True)
 
-    if script_name == "profile_tester":
-        from modules import profiles
+    print("Available profiles:")
 
-        profile_list = profiles.get_profiles(just_names=True)
+    for i, profile_name in enumerate(profile_list):
+        print(f"{str(i)}: {profile_name}")
 
-        print("Available profiles:")
+    profile: str = profile_list[int(typer.prompt("Which profile do you want to test? "))]
 
-        for i, profile_name in enumerate(profile_list):
-            print(f"{str(i)}: {profile_name}")
+    url: str = typer.prompt("Enter specific URL or leave blank for scraping 10 urls by itself")
 
-        profile = profile_list[int(input("Which profile do you want to test? "))]
+    profile_tester(profile, url)
 
-        url = input(
-            "Enter specific URL or leave blank for scraping 10 urls by itself: "
-        )
-
-        scripts.profile_tester.main(profile, url)
-        exit()
-
-    elif script_name == "elastic":
-        elastic_script_names = [
-            ("download", "Download articles from remote cluster"),
-            (
-                "articles_to_json",
-                "Export the OSINTer article index as json object to file",
-            ),
-            (
-                "json_to_articles",
-                "Import OSINTer article index as json object from file",
-            ),
-            ("articles_to_md", "Export all articles as markdown files"),
-        ]
-        elastic_script_name = select_script(elastic_script_names)
-
-        if elastic_script_name == "download":
-            remote_es_address = input(
-                "Please enter the full URL (with read access) of the remote Elasticsearch cluster: "
+@app.command()
+def verify_keywords():
+    if os.path.isdir(os.path.join("tools", "keywords")):
+        for file in os.listdir(os.path.join("tools" "keywords")):
+            current_keywords = decode_keywords_file(
+                os.path.join("tools", "keywords", "{file}")
             )
-            scripts.elastic.download.main(remote_es_address)
-            exit()
-        elif elastic_script_name in [
-            "json_to_articles",
-            "articles_to_json",
-            "articles_to_md",
-        ]:
-            file_path = Path(
-                input(
-                    "Please enter the absolute or relative path to the export file/dir: "
-                )
-            ).resolve()
-            eval(f"scripts.{script_name}.{elastic_script_name}.main(file_path)")
-            exit()
 
-        eval(f"scripts.{script_name}.{elastic_script_name}.main()")
-        exit()
+            for keyword_collection in current_keywords:
+                try:
+                    test = [
+                        keyword_collection["keywords"],
+                        keyword_collection["tag"],
+                        keyword_collection["proximity"],
+                    ]
 
-    eval(f"scripts.{script_name}.main()")
+                    if (
+                        not isinstance(test[2], int)
+                        or not isinstance(test[1], str)
+                        or not isinstance(test[0], list)
+                    ):
+                        print(f"Error with {keyword_collection}")
+                except:
+                    print(f"Error with {keyword_collection}")
+    else:
+        print("No ḱeyword files were found")
+
+
+app.command("scrape")(scrape)
 
 
 if __name__ == "__main__":
-    main()
+    app()

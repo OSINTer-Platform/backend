@@ -13,37 +13,16 @@ selenium
 # For converting from html to markdown
 markdownify
 
-# For parsing urls
-urllib3
-
-# For interacting with the postgresql database
-psycopg2-binary
-
-# For hosting the webserver
-Flask
-
-# For handling access control
-flask_login
-
-# For serving the MD files as html
-markdown
-
 # For parsing dates from LD+JSON data
 python-dateutil
 
-# Library for hashing password securly
-argon2-cffi
-
 # For connecting with the elasticsearch backend
 elasticsearch
-
-# For dataclass features
-attrs
-
-# For generating RSS feed
-feedgen
 
 # For scraping tweets from twitter
 searchtweets-v2
 
 pydantic
+
+typer
+Rich
