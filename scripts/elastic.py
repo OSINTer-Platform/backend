@@ -1,11 +1,15 @@
 import os
 import json
 from datetime import datetime
+from enum import Enum
 
 from . import config_options
-from modules.elastic import SearchQuery
+from modules.elastic import SearchQuery, ES_INDEX_CONFIGS
 from modules.objects import FullArticle
 from modules.files import convert_article_to_md
+
+from elasticsearch import BadRequestError
+from elasticsearch.client import IndicesClient
 
 import logging
 
@@ -14,6 +18,32 @@ logger = logging.getLogger("osinter")
 import typer
 
 app = typer.Typer()
+
+class ESIndex(str, Enum):
+    ELASTICSEARCH_TWEET_INDEX = "TWEET"
+    ELASTICSEARCH_ARTICLE_INDEX = "ARTICLE"
+    ELASTICSEARCH_USER_INDEX = "USER"
+
+@app.command()
+def reindex(index: ESIndex):
+    index_name: str = config_options[index.name]
+    backup_name: str = f"{index_name}_backup"
+
+    index_config: dict[str, any] = ES_INDEX_CONFIGS[index.name]
+    es_index_client = IndicesClient(config_options.es_conn)
+
+    # Create empty backup index
+    es_index_client.delete(index=backup_name, ignore=[404])
+    original_index_config = es_index_client.get_mapping(index=index_name)[index_name]["mappings"]
+    es_index_client.create(index=backup_name, mappings=original_index_config)
+
+    config_options.es_conn.reindex(dest={"index" : backup_name}, source={"index" : index_name})
+    es_index_client.delete(index = index_name)
+
+    # Migrate backup index to original index
+    es_index_client.create(index = index_name, mappings=index_config)
+    config_options.es_conn.reindex(dest={"index" : index_name}, source={"index" : backup_name})
+
 
 
 @app.command()
