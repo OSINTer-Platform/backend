@@ -4,9 +4,12 @@ from scripts.profile_tester import main as profile_tester
 from . import config_options
 from .elastic import app as elastic_app
 
-from modules.config import configure_elasticsearch
 from modules.misc import download_driver, extract_driver_url, decode_keywords_file
 from modules.profiles import get_profiles
+from modules.elastic import ES_INDEX_CONFIGS
+
+from elasticsearch import BadRequestError
+from elasticsearch.client import IndicesClient
 
 import os
 
@@ -27,7 +30,19 @@ def initiate_db():
     download_driver(extract_driver_url())
 
     logger.info("Configuring elasticsearch")
-    configure_elasticsearch(config_options)
+    es_index_client = IndicesClient(config_options.es_conn)
+
+    for index_name in ES_INDEX_CONFIGS:
+        try:
+            es_index_client.create(
+                index=config_options[index_name],
+                mappings=ES_INDEX_CONFIGS[index_name],
+            )
+        except BadRequestError as e:
+            if e.status_code != 400 or e.error != "resource_already_exists_exception":
+                raise e
+            else:
+                logger.info(f'The {index_name} already exists, skipping.')
 
 
 def get_profile_list() -> list[str]:
