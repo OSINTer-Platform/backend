@@ -64,15 +64,22 @@ def articles_to_json(export_filename: str):
 @app.command()
 def json_to_articles(import_filename: str):
     with open(import_filename, "r") as import_file:
-        articles = json.load(import_file)
+        local_articles: dict[str, any] = json.load(import_file)
 
-    for article in articles:
-        current_article_object = FullArticle(**article)
-        if not config_options.es_article_client.exists_in_db(
-            current_article_object.url
-        ):
+    remote_article_urls: list[str] = [ article.url for article in config_options.es_article_client.query_all_documents()["documents"] ]
+
+
+    new_articles: list[FullArticle] = []
+
+    for article in local_articles:
+        if article["url"] not in remote_article_urls:
+            current_article_object = FullArticle(**article)
             current_article_object.id = None
-            config_options.es_article_client.save_document(current_article_object)
+            new_articles.append(current_article_object)
+
+
+    saved_count: int = config_options.es_article_client.save_document(new_articles)
+
 
 
 @app.command()

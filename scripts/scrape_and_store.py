@@ -145,23 +145,17 @@ def scrape_using_profile(article_url_list, profile_name):
     # Loading the profile for the current website
     current_profile = profiles.get_profiles(profile_name)
 
-    article_ids = []
-
     for i, url in enumerate(article_url_list):
         logger.debug(
             f'Scraped article number {i + 1} with the types "{current_profile["scraping"]["type"]}" and following URL: {url}.'
         )
         try:
             current_article = handle_single_article(url, current_profile)
-            article_ids.append(
-                config_options.es_article_client.save_document(current_article)
-            )
+            config_options.es_article_client.save_document(current_article)
         except ValidationError as e:
             logger.error(
                 f'Encountered problem with article with URL "{url}", skipping for now. Error: {e}'
             )
-
-    return article_ids
 
 
 def scrape_articles():
@@ -253,18 +247,14 @@ def scrape_tweets(author_list_path=Path("./tools/twitter_authors")):
 
         logger.debug("Succesfully loaded twitter credentials and authorlist.")
 
-        tweet_ids = []
-
         tweet_list = gather_tweets(author_list, credentials)
 
         logger.debug("Saving the tweets.\n")
         for tweet in tweet_list:
-            tweet_ids.append(config_options.es_tweet_client.save_document(tweet))
+            config_options.es_tweet_client.save_document(tweet)
 
-        return tweet_ids
     else:
         logger.debug("Couldn't load twitter credentials and authorlist.\n")
-        return None
 
 
 def main():
