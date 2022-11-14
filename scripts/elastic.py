@@ -42,7 +42,22 @@ def reindex(index: ESIndex):
 
     # Migrate backup index to original index
     es_index_client.create(index = index_name, mappings=index_config)
-    config_options.es_conn.reindex(dest={"index" : index_name}, source={"index" : backup_name})
+
+    try:
+        logger.debug("Attempting to reindex backup into new main index")
+        config_options.es_conn.reindex(dest={"index" : index_name}, source={"index" : backup_name})
+    except:
+        logger.critical("Error when reindexing, attempting to recover original index from backup")
+
+        try:
+            es_index_client.delete(index = index_name)
+            es_index_client.create(index = index_name, mappings=original_index_config)
+            config_options.es_conn.reindex(dest={"index" : index_name}, source={"index" : backup_name})
+        except:
+            logger.critical(f'Error when attempting to recovering original index from backup, please manually recover "{index_name}" from the backup "{backup_name}"')
+
+        raise
+
 
 
 
