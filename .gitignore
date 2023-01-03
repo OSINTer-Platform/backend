@@ -3,3 +3,4 @@ modules
 profiles
 __pycache__
 tools/geckodriver
+.env
