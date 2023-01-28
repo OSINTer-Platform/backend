@@ -5,7 +5,7 @@ from typing import Any, cast
 
 from bs4 import BeautifulSoup as bs
 from markdownify import MarkdownConverter
-from pydantic import AnyUrl, HttpUrl, ValidationError
+from pydantic import HttpUrl, ValidationError
 from searchtweets import load_credentials
 
 from modules import text

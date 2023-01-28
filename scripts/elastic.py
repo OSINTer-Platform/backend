@@ -95,7 +95,7 @@ def articles_to_json(export_filename: str):
 
     logger.debug("Converting articles to json objects")
 
-    for article in articles["documents"]:
+    for article in articles:
         article_dicts.append(article.dict())
 
     logger.debug("Writing articles to json file")
@@ -116,9 +116,7 @@ def json_to_articles(import_filename: str):
     )
     remote_article_urls: list[str] = [
         article_url
-        for article in config_options.es_article_client.query_all_documents()[
-            "documents"
-        ]
+        for article in config_options.es_article_client.query_all_documents()
         if (article_url := getattr(article, "url", None))
     ]
 
@@ -157,7 +155,7 @@ def articles_to_md(destination: str):
 
         articles = config_options.es_article_client.query_documents(
             SearchQuery(complete=True, limit=0, source_category=[profile])
-        )["documents"]
+        )
 
         try:
             os.mkdir(os.path.join(folder_path, profile))
