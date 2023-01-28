@@ -1,18 +1,15 @@
-#!/usr/bin/python3
-
+import logging
 import os
 
-from modules import *
-from scripts.scrape_and_store import handle_single_article, gather_article_urls
-from scripts import config_options
-
-import logging
+from modules.files import convert_article_to_md
+from modules.profiles import get_profile
+from scripts.scrape_and_store import gather_article_urls, handle_single_article
 
 logger = logging.getLogger("osinter")
 
 
 def main(profile_name, custom_url=""):
-    current_profile = profiles.get_profiles(profile_name)
+    current_profile = get_profile(profile_name)
 
     if custom_url:
         article_url_collection = [custom_url]
@@ -28,11 +25,7 @@ def main(profile_name, custom_url=""):
 
     for article in articles:
         os.system(f"firefox {article.url}")
-        article_string += files.convert_article_to_md(article).getvalue() + "\n\n"
+        article_string += convert_article_to_md(article).getvalue() + "\n\n"
 
     with open("./articles.md", "w") as f:
         f.write(article_string)
-
-
-if __name__ == "__main__":
-    main()

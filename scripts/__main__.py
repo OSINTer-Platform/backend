@@ -1,31 +1,54 @@
-from scripts.scrape_and_store import main as scrape
+import json
+import logging
+import os
+import tarfile
+
+from elasticsearch import BadRequestError
+from elasticsearch.client import IndicesClient
+import requests
+import typer
+
+from modules.elastic import ES_INDEX_CONFIGS
+from modules.misc import create_folder, decode_keywords_file
+from modules.profiles import list_profiles
 from scripts.profile_tester import main as profile_tester
+from scripts.scrape_and_store import main as scrape
 
 from . import config_options
 from .elastic import app as elastic_app
 
-from modules.misc import download_driver, extract_driver_url, decode_keywords_file
-from modules.profiles import get_profiles
-from modules.elastic import ES_INDEX_CONFIGS
-
-from elasticsearch import BadRequestError
-from elasticsearch.client import IndicesClient
-
-import os
-
-import logging
-
 logger = logging.getLogger("osinter")
 
-import typer
+
 
 app = typer.Typer(no_args_is_help=True)
 app.add_typer(elastic_app, name="elastic", no_args_is_help=True)
 
 
 @app.command()
-def initiate_db():
-    logger.info("Downloading and extracting the geckodriver...")
+def initiate_db() -> None:
+
+    # Mozilla will have an api endpoint giving a lot of information about the latest releases for the geckodriver, from which the url for the linux 64 bit has to be extracted
+    def extract_driver_url():
+        driver_details = json.loads(
+            requests.get(
+                "https://api.github.com/repos/mozilla/geckodriver/releases/latest"
+            ).text
+        )
+
+        for platform_release in driver_details["assets"]:
+            if platform_release["name"].endswith("linux64.tar.gz"):
+                return platform_release["browser_download_url"]
+
+
+    # Downloading and extracting the .tar.gz file the geckodriver is stored in into the tools directory
+    def download_driver(driver_url):
+        driver_contents = requests.get(driver_url, stream=True)
+        with tarfile.open(fileobj=driver_contents.raw, mode="r|gz") as driver_file:
+            driver_file.extractall(path=os.path.normcase("./tools/"))
+        logger.info("Downloading and extracting the geckodriver...")
+
+    create_folder("tools")
 
     download_driver(extract_driver_url())
 
@@ -46,7 +69,7 @@ def initiate_db():
 
 
 def get_profile_list() -> list[str]:
-    profile_list: list[str] = get_profiles(just_names=True)
+    profile_list: list[str] = list_profiles()
     profile_list.sort()
 
     return profile_list
@@ -65,7 +88,7 @@ def get_profile_prompt() -> str:
     return ret_val
 
 
-def calculate_profile(value: str):
+def calculate_profile(value: str) -> str:
     profile_list: list[str] = get_profile_list()
 
     try:
@@ -87,13 +110,13 @@ def test_profile(
     url: str = typer.Option(
         "", prompt="Enter specific URL or leave blank for scraping 10 urls by itself"
     ),
-):
+) -> None:
 
     profile_tester(profile, url)
 
 
 @app.command()
-def verify_keywords():
+def verify_keywords() -> None:
     if os.path.isdir(os.path.join("tools", "keywords")):
         for file in os.listdir(os.path.join("tools", "keywords")):
             current_keywords = decode_keywords_file(

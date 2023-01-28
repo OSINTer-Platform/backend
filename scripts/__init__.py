@@ -1,9 +1,11 @@
 from dotenv import load_dotenv
-from modules import config, misc
+
+from modules.config import BackendConfig, configure_logger
+from modules.misc import create_folder
 
 load_dotenv()
 
-misc.create_folder("logs")
-config.configure_logger("osinter")
+create_folder("logs")
+configure_logger("osinter")
 
-config_options = config.BackendConfig()
+config_options = BackendConfig()
