@@ -154,7 +154,7 @@ def articles_to_md(destination: str):
         logger.info(f"Downloading list of articles for {profile}")
 
         articles = config_options.es_article_client.query_documents(
-            SearchQuery(complete=True, limit=0, source_category=[profile]), True
+            SearchQuery(complete=True, limit=0, source_category=[profile])
         )
 
         try:
