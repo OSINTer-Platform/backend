@@ -20,7 +20,6 @@ from .elastic import app as elastic_app
 logger = logging.getLogger("osinter")
 
 
-
 app = typer.Typer(no_args_is_help=True)
 app.add_typer(elastic_app, name="elastic", no_args_is_help=True)
 
@@ -39,7 +38,6 @@ def initiate_db() -> None:
         for platform_release in driver_details["assets"]:
             if platform_release["name"].endswith("linux64.tar.gz"):
                 return platform_release["browser_download_url"]
-
 
     # Downloading and extracting the .tar.gz file the geckodriver is stored in into the tools directory
     def download_driver(driver_url):
@@ -65,7 +63,7 @@ def initiate_db() -> None:
             if e.status_code != 400 or e.error != "resource_already_exists_exception":
                 raise e
             else:
-                logger.info(f'The {index_name} already exists, skipping.')
+                logger.info(f"The {index_name} already exists, skipping.")
 
 
 def get_profile_list() -> list[str]:

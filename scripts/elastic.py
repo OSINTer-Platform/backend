@@ -17,7 +17,6 @@ from . import config_options
 logger = logging.getLogger("osinter")
 
 
-
 app = typer.Typer()
 
 

@@ -52,18 +52,14 @@ def gather_article_urls(profiles) -> dict[str, list[str]]:
             # For those were the RSS feed is useful, that will be used
             if profile["source"]["retrival_method"] == "rss":
                 logger.debug("Using RSS for gathering links.\n")
-                article_urls[
-                    profile_name
-                ] = get_article_urls_from_rss(
+                article_urls[profile_name] = get_article_urls_from_rss(
                     profile["source"]["news_path"], profile_name
                 )
 
             # For basically everything else scraping will be used
             elif profile["source"]["retrival_method"] == "scraping":
                 logger.debug("Using scraping for gathering links.\n")
-                article_urls[
-                    profile_name
-                ] = scrape_article_urls(
+                article_urls[profile_name] = scrape_article_urls(
                     profile["source"]["address"],
                     profile["source"]["news_path"],
                     profile["source"]["scraping_targets"],
@@ -132,7 +128,7 @@ def handle_single_article(url: str, current_profile: dict[str, Any]) -> FullArti
     return current_article
 
 
-def scrape_using_profile(article_url_list: list[str], profile_name: str) ->  None:
+def scrape_using_profile(article_url_list: list[str], profile_name: str) -> None:
     logger.info(
         f'Scraping {len(article_url_list)} articles using the "{profile_name}" profile.'
     )
