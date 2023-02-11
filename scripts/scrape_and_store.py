@@ -65,6 +65,8 @@ def gather_article_urls(profiles) -> dict[str, list[str]]:
                     profile["source"]["scraping_targets"],
                     profile_name,
                 )
+            else:
+                raise NotImplementedError
 
         except Exception as e:
             logger.exception(
