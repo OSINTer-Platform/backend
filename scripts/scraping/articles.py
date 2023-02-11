@@ -6,7 +6,6 @@ from typing import Any, cast
 from bs4 import BeautifulSoup as bs
 from markdownify import MarkdownConverter
 from pydantic import HttpUrl, ValidationError
-from searchtweets import load_credentials
 
 from modules import text
 from modules.extract import extract_article_content, extract_meta_information
@@ -24,7 +23,7 @@ logger = logging.getLogger("osinter")
 
 
 class custom_md_converter(MarkdownConverter):
-    def convert_figure(self, el, text, convert_as_inline): # pyright: ignore
+    def convert_figure(self, el, text, convert_as_inline):  # pyright: ignore
         self.process_tag(el, False, children_only=True)
         return text + "\n\n"
 
@@ -55,7 +54,6 @@ def gather_article_urls(profiles) -> dict[str, list[str]]:
                 article_urls[profile_name] = get_article_urls_from_rss(
                     profile["source"]["news_path"]
                 )
-
 
             # For basically everything else scraping will be used
             elif profile["source"]["retrival_method"] == "scraping":
@@ -189,81 +187,3 @@ def scrape_articles() -> None:
         scrape_using_profile(
             filtered_article_url_collection[profile_name], profile_name
         )
-
-
-def gather_tweets(major_author_list, credentials, chunck_size=10):
-    chuncked_author_list = [
-        major_author_list[i : i + chunck_size]
-        for i in range(0, len(major_author_list), chunck_size)
-    ]
-
-    tweets = []
-
-    for author_list in chuncked_author_list:
-        logger.debug(f"Scraping tweets for these authors: {' '.join(author_list)}")
-        try:
-            last_id = config_options.es_tweet_client.get_last_document(
-                author_list
-            ).twitter_id
-            tweet_data = twitter.gather_tweet_data(credentials, author_list, last_id)
-        except AttributeError:
-            logger.debug("These are the first tweets by these authors.")
-            tweet_data = twitter.gather_tweet_data(credentials, author_list)
-
-        if tweet_data:
-            logger.debug("Converting twitter data to python objects.")
-            for tweet in twitter.process_tweet_data(tweet_data):
-                tweets.append(objects.FullTweet(**tweet))
-        else:
-            logger.debug("No tweets was found.")
-            return []
-
-    return tweets
-
-
-def scrape_tweets(author_list_path=os.path.normcase("./tools/twitter_authors")):
-    logger.debug("Trying to load twitter credentials and authorlist.")
-    if os.path.isfile(author_list_path) and os.path.isfile(
-        config_options.TWITTER_CREDENTIAL_PATH
-    ):
-        credentials = load_credentials(
-            config_options.TWITTER_CREDENTIAL_PATH,
-            yaml_key="search_tweets_v2",
-            env_overwrite=False,
-        )
-
-        author_list = []
-
-        with open(author_list_path, "r") as f:
-            for line in f.readlines():
-                # Splitting by # to allow for comments
-                author_list.append(line.split("#")[0].strip())
-
-        logger.debug("Succesfully loaded twitter credentials and authorlist.")
-
-        tweet_list = gather_tweets(author_list, credentials)
-
-        logger.debug("Saving the tweets.\n")
-        for tweet in tweet_list:
-            config_options.es_tweet_client.save_document(tweet)
-
-    else:
-        logger.debug("Couldn't load twitter credentials and authorlist.\n")
-
-
-def main():
-
-    for scraping_function in [scrape_tweets, scrape_articles]:
-        try:
-            logger.info(f'Running the "{scraping_function.__name__}" function.')
-            scraping_function()
-
-        except Exception as e:
-            logger.critical(
-                f'Critical error prevented running the "{scraping_function.__name__}". Error: {e}',
-                exc_info=True,
-            )
-
-
-if __name__ == "__main__":
-    main()

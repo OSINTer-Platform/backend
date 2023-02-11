@@ -12,7 +12,7 @@ from modules.elastic import ES_INDEX_CONFIGS
 from modules.misc import create_folder, decode_keywords_file
 from modules.profiles import list_profiles
 from scripts.profile_tester import main as profile_tester
-from scripts.scrape_and_store import main as scrape
+from scripts.scraping import main as scrape
 
 from . import config_options
 from .elastic import app as elastic_app

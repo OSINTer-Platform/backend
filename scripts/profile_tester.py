@@ -3,7 +3,7 @@ import os
 
 from modules.files import convert_article_to_md
 from modules.profiles import get_profile
-from scripts.scrape_and_store import gather_article_urls, handle_single_article
+from scripts.scraping.articles import gather_article_urls, handle_single_article
 
 logger = logging.getLogger("osinter")
 
