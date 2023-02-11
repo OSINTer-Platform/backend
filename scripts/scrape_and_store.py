@@ -24,7 +24,7 @@ logger = logging.getLogger("osinter")
 
 
 class custom_md_converter(MarkdownConverter):
-    def convert_figure(self, el, text, convert_as_inline):
+    def convert_figure(self, el, text, convert_as_inline): # pyright: ignore
         self.process_tag(el, False, children_only=True)
         return text + "\n\n"
 
