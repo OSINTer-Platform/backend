@@ -37,9 +37,9 @@ class custom_md_converter(MarkdownConverter):
 
 
 # Function for gathering list of URLs for articles from newssite
-def gather_article_urls(profiles) -> dict[str, list[str]]:
+def gather_article_urls(profiles: list[dict[str, Any]]) -> dict[str, list[str]]:
 
-    article_urls = {}
+    article_urls: dict[str, list[str]] = {}
 
     for profile in profiles:
 
