@@ -53,8 +53,9 @@ def gather_article_urls(profiles) -> dict[str, list[str]]:
             if profile["source"]["retrival_method"] == "rss":
                 logger.debug("Using RSS for gathering links.\n")
                 article_urls[profile_name] = get_article_urls_from_rss(
-                    profile["source"]["news_path"], profile_name
+                    profile["source"]["news_path"]
                 )
+
 
             # For basically everything else scraping will be used
             elif profile["source"]["retrival_method"] == "scraping":
