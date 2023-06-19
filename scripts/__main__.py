@@ -7,18 +7,19 @@ import typer
 
 from modules.elastic import ES_INDEX_CONFIGS
 from modules.misc import decode_keywords_file
-from modules.profiles import list_profiles
-from scripts.profile_tester import main as profile_tester
+
 from scripts.scraping import main as scrape
 
 from . import config_options
 from .elastic import app as elastic_app
+from .profile_tester import app as profile_app
 
 logger = logging.getLogger("osinter")
 
 
 app = typer.Typer(no_args_is_help=True)
 app.add_typer(elastic_app, name="elastic", no_args_is_help=True)
+app.add_typer(profile_app, name="profile", no_args_is_help=True)
 
 
 @app.command()
@@ -38,53 +39,6 @@ def initiate_db() -> None:
                 raise e
             else:
                 logger.info(f"The {index_name} already exists, skipping.")
-
-
-def get_profile_list() -> list[str]:
-    profile_list: list[str] = list_profiles()
-    profile_list.sort()
-
-    return profile_list
-
-
-def get_profile_prompt() -> str:
-    profile_list: list[str] = get_profile_list()
-
-    ret_val: str = ""
-
-    for i, profile_name in enumerate(profile_list):
-        ret_val += f"{str(i)}: {profile_name}\n"
-
-    ret_val += "Available profiles"
-
-    return ret_val
-
-
-def calculate_profile(value: str) -> str:
-    profile_list: list[str] = get_profile_list()
-
-    try:
-        return get_profile_list()[int(value)]
-    except ValueError:
-        if value in profile_list:
-            return value
-        else:
-            raise typer.BadParameter(
-                f'"{value}" was not recognized amongst the available profiles'
-            )
-
-
-@app.command()
-def test_profile(
-    profile: str = typer.Option(
-        ..., prompt=get_profile_prompt(), callback=calculate_profile
-    ),
-    url: str = typer.Option(
-        "", prompt="Enter specific URL or leave blank for scraping 10 urls by itself"
-    ),
-) -> None:
-
-    profile_tester(profile, url)
 
 
 @app.command()
