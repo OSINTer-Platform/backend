@@ -1,15 +1,12 @@
-import json
 import logging
 import os
-import tarfile
 
 from elasticsearch import BadRequestError
 from elasticsearch.client import IndicesClient
-import requests
 import typer
 
 from modules.elastic import ES_INDEX_CONFIGS
-from modules.misc import create_folder, decode_keywords_file
+from modules.misc import decode_keywords_file
 from modules.profiles import list_profiles
 from scripts.profile_tester import main as profile_tester
 from scripts.scraping import main as scrape
@@ -26,29 +23,6 @@ app.add_typer(elastic_app, name="elastic", no_args_is_help=True)
 
 @app.command()
 def initiate_db() -> None:
-
-    # Mozilla will have an api endpoint giving a lot of information about the latest releases for the geckodriver, from which the url for the linux 64 bit has to be extracted
-    def extract_driver_url():
-        driver_details = json.loads(
-            requests.get(
-                "https://api.github.com/repos/mozilla/geckodriver/releases/latest"
-            ).text
-        )
-
-        for platform_release in driver_details["assets"]:
-            if platform_release["name"].endswith("linux64.tar.gz"):
-                return platform_release["browser_download_url"]
-
-    # Downloading and extracting the .tar.gz file the geckodriver is stored in into the tools directory
-    def download_driver(driver_url):
-        driver_contents = requests.get(driver_url, stream=True)
-        with tarfile.open(fileobj=driver_contents.raw, mode="r|gz") as driver_file:
-            driver_file.extractall(path=os.path.normcase("./tools/"))
-        logger.info("Downloading and extracting the geckodriver...")
-
-    create_folder("tools")
-
-    download_driver(extract_driver_url())
 
     logger.info("Configuring elasticsearch")
     es_index_client = IndicesClient(config_options.es_conn)
