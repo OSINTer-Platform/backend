@@ -64,6 +64,21 @@ def gather_article_urls(profiles: list[dict[str, Any]]) -> dict[str, list[str]]:
                     profile["source"]["scraping_targets"],
                     profile_name,
                 )
+            elif profile["source"]["retrival_method"] == "dynamic":
+                logger.debug("Using dynamic scraping for gathering links.\n")
+
+                articles_source = scrape_page_dynamic(
+                    profile["source"]["news_path"], []
+                )
+                frontpage_soup = bs(articles_source, "html.parser")
+
+                article_urls[profile_name] = scrape_article_urls(
+                    profile["source"]["address"],
+                    profile["source"]["news_path"],
+                    profile["source"]["scraping_targets"],
+                    profile_name,
+                    web_soup=frontpage_soup,
+                )
             else:
                 raise NotImplementedError
 
