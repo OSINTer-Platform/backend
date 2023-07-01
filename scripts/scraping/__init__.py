@@ -8,7 +8,6 @@ logger = logging.getLogger("osinter")
 
 
 def main():
-
     for scraping_function in [scrape_tweets, scrape_articles]:
         try:
             logger.info(f'Running the "{scraping_function.__name__}" function.')

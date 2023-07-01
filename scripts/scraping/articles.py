@@ -38,14 +38,12 @@ class custom_md_converter(MarkdownConverter):
 
 # Function for gathering list of URLs for articles from newssite
 def gather_article_urls(profiles: list[dict[str, Any]]) -> dict[str, list[str]]:
-
     article_urls: dict[str, list[str]] = {}
 
     for profile in profiles:
+        profile_name = profile["source"]["profile_name"]
 
-        logger.debug(
-            f'Gathering URLs for the "{(profile_name := profile["source"]["profile_name"])}" profile.'
-        )
+        logger.debug(f'Gathering URLs for the "{profile_name}" profile.')
 
         try:
             # For those were the RSS feed is useful, that will be used
@@ -92,7 +90,6 @@ def gather_article_urls(profiles: list[dict[str, Any]]) -> dict[str, list[str]]:
 
 
 def handle_single_article(url: str, current_profile: dict[str, Any]) -> FullArticle:
-
     # Scrape the whole article source based on how the profile says
     scraping_types: list[str] = current_profile["scraping"]["type"].split(";")
     articles_source = scrape_page_dynamic(url, scraping_types)
@@ -155,7 +152,7 @@ def scrape_using_profile(article_url_list: list[str], profile_name: str) -> None
 
     for i, url in enumerate(article_url_list):
         logger.debug(
-            f'Scraped article number {i + 1} with the types "{current_profile["scraping"]["type"]}" and following URL: {url}.'
+            f'Scraping article number {i + 1} with the types "{current_profile["scraping"]["type"]}" and following URL: {url}.'
         )
         try:
             current_article = handle_single_article(url, current_profile)

@@ -149,7 +149,6 @@ def articles_to_md(destination: str):
     profiles = list(config_options.es_article_client.get_unique_values())
 
     for profile in profiles:
-
         logger.info(f"Downloading list of articles for {profile}")
 
         articles = config_options.es_article_client.query_documents(

@@ -24,7 +24,6 @@ app.add_typer(profile_app, name="profile", no_args_is_help=True)
 
 @app.command()
 def initiate_db() -> None:
-
     logger.info("Configuring elasticsearch")
     es_index_client = IndicesClient(config_options.es_conn)
 
