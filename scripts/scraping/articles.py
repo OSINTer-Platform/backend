@@ -68,6 +68,7 @@ def gather_article_urls(profiles: list[dict[str, Any]]) -> dict[str, list[str]]:
                 raise NotImplementedError
 
         except Exception as e:
+            article_urls[profile_name] = []
             logger.exception(
                 f'Problem with gathering URLs for the "{profile_name}" profile. Skipping for now. Error {e}'
             )
