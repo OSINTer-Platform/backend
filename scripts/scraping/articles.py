@@ -4,7 +4,7 @@ import os
 from typing import Any, cast
 
 from bs4 import BeautifulSoup as bs
-from markdownify import MarkdownConverter
+from markdownify import MarkdownConverter  # type: ignore
 from pydantic import HttpUrl, ValidationError
 
 from modules import text
@@ -23,7 +23,7 @@ logger = logging.getLogger("osinter")
 
 
 class custom_md_converter(MarkdownConverter):
-    def convert_figure(self, el, text, convert_as_inline):  # pyright: ignore
+    def convert_figure(self, el, text, _):
         self.process_tag(el, False, children_only=True)
         return text + "\n\n"
 
