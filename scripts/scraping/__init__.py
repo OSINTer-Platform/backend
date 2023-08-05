@@ -1,14 +1,13 @@
 import logging
 
 from .articles import scrape_articles
-from .twitter import scrape_tweets
 
 
 logger = logging.getLogger("osinter")
 
 
 def main():
-    for scraping_function in [scrape_tweets, scrape_articles]:
+    for scraping_function in [scrape_articles]:
         try:
             logger.info(f'Running the "{scraping_function.__name__}" function.')
             scraping_function()
