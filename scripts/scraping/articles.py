@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 import logging
-import os
 from typing import Any, cast
 
 from bs4 import BeautifulSoup as bs
@@ -9,7 +8,6 @@ from pydantic import HttpUrl, ValidationError
 
 from modules import text
 from modules.extract import extract_article_content, extract_meta_information
-from modules.misc import decode_keywords_file
 from modules.objects import FullArticle
 from modules.profiles import get_profile, get_profiles
 from modules.scraping import (
@@ -126,16 +124,6 @@ def handle_single_article(url: str, current_profile: dict[str, Any]) -> FullArti
     current_article.tags["interresting"] = text.locate_objects_of_interrest(
         article_clear_text
     )
-    current_article.tags["manual"] = {}
-
-    if os.path.isdir(os.path.normcase("./tools/keywords/")):
-        for filename in os.listdir(os.path.normcase("./tools/keywords/")):
-            current_tags = text.locate_keywords(
-                decode_keywords_file(os.path.normcase(f"./tools/keywords/{filename}")),
-                article_clear_text,
-            )
-            if current_tags != []:
-                current_article.tags["manual"][filename] = current_tags
 
     current_article.inserted_at = datetime.now(timezone.utc)
 

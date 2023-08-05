@@ -1,12 +1,10 @@
 import logging
-import os
 
 from elasticsearch import BadRequestError
 from elasticsearch.client import IndicesClient
 import typer
 
 from modules.elastic import ES_INDEX_CONFIGS
-from modules.misc import decode_keywords_file
 
 from scripts.scraping import main as scrape
 
@@ -38,35 +36,6 @@ def initiate_db() -> None:
                 raise e
             else:
                 logger.info(f"The {index_name} already exists, skipping.")
-
-
-@app.command()
-def verify_keywords() -> None:
-    if os.path.isdir(os.path.join("tools", "keywords")):
-        for file in os.listdir(os.path.join("tools", "keywords")):
-            current_keywords = decode_keywords_file(
-                os.path.join("tools", "keywords", file)
-            )
-
-            for keyword_collection in current_keywords:
-                try:
-                    test = [
-                        keyword_collection["keywords"],
-                        keyword_collection["tag"],
-                        keyword_collection["proximity"],
-                    ]
-
-                    if (
-                        not isinstance(test[2], int)
-                        or not isinstance(test[1], str)
-                        or not isinstance(test[0], list)
-                    ):
-                        print(f"Error with {keyword_collection}")
-                except:
-                    print(f"Error with {keyword_collection}")
-    else:
-        print("No ḱeyword files were found")
-
 
 app.command("scrape")(scrape)
 
