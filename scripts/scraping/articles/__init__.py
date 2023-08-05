@@ -6,15 +6,17 @@ from bs4 import BeautifulSoup as bs
 from markdownify import MarkdownConverter  # type: ignore
 from pydantic import HttpUrl, ValidationError
 
-from modules import text
-from modules.extract import extract_article_content, extract_meta_information
 from modules.objects import FullArticle
 from modules.profiles import get_profile, get_profiles
-from modules.scraping import (
+
+from .text import clean_text, generate_tags, locate_objects_of_interrest, tokenize_text
+from .extract import extract_article_content, extract_meta_information
+from .scraping import (
     get_article_urls_from_rss,
     scrape_article_urls,
     scrape_page_dynamic,
 )
+
 from scripts import config_options
 
 logger = logging.getLogger("osinter")
@@ -110,7 +112,7 @@ def handle_single_article(url: str, current_profile: dict[str, Any]) -> FullArti
         current_profile["scraping"]["content"], article_soup
     )
 
-    article_clear_text = text.clean_text(article_clear_text)
+    article_clear_text = clean_text(article_clear_text)
 
     current_article.content = article_clear_text
     current_article.formatted_content = custom_md_converter(
@@ -118,10 +120,10 @@ def handle_single_article(url: str, current_profile: dict[str, Any]) -> FullArti
     ).convert(article_text)
 
     # Generate the tags
-    current_article.tags["automatic"] = text.generate_tags(
-        text.tokenize_text(article_clear_text)
+    current_article.tags["automatic"] = generate_tags(
+        tokenize_text(article_clear_text)
     )
-    current_article.tags["interresting"] = text.locate_objects_of_interrest(
+    current_article.tags["interresting"] = locate_objects_of_interrest(
         article_clear_text
     )
 
