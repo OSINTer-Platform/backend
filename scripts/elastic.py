@@ -27,7 +27,7 @@ class ESIndex(str, Enum):
 
 
 @app.command()
-def reindex(index: ESIndex):
+def reindex(index: ESIndex) -> None:
     index_name: str = config_options[index.name]
     backup_name: str = f"{index_name}_backup"
 
@@ -84,7 +84,7 @@ def reindex(index: ESIndex):
 
 
 @app.command()
-def articles_to_json(export_filename: str):
+def articles_to_json(export_filename: str) -> None:
     logger.debug("Downloading articles")
     articles = config_options.es_article_client.query_documents(
         SearchQuery(limit=0, complete=True)
@@ -104,7 +104,7 @@ def articles_to_json(export_filename: str):
 
 
 @app.command()
-def json_to_articles(import_filename: str):
+def json_to_articles(import_filename: str) -> None:
     logger.debug("Loading articles from file")
 
     with open(import_filename, "r") as import_file:
@@ -137,7 +137,7 @@ def json_to_articles(import_filename: str):
 
 
 @app.command()
-def articles_to_md(destination: str):
+def articles_to_md(destination: str) -> None:
     folder_path = os.path.join(destination, "MDArticles")
 
     try:

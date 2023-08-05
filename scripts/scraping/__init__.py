@@ -6,7 +6,7 @@ from .articles import scrape_articles
 logger = logging.getLogger("osinter")
 
 
-def main():
+def main() -> None:
     for scraping_function in [scrape_articles]:
         try:
             logger.info(f'Running the "{scraping_function.__name__}" function.')

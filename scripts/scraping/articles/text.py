@@ -3,6 +3,7 @@ import re
 from typing import TypedDict
 import unicodedata
 
+
 # Function for taking in text from article (or basically any source) and outputting a list of words cleaned for punctuation, sole numbers, double spaces and other things so that it can be used for text analyssis
 def clean_text(clear_text: str) -> str:
     # Normalizing the text, to remove weird characthers that sometimes pop up in webarticles

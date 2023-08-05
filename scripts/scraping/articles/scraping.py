@@ -46,6 +46,7 @@ browser_headers_list = [
     },
 ]
 
+
 def check_if_valid_url(url: str) -> bool:
     if re.match(r"https?:\/\/.*\..*", url):
         return True
@@ -59,6 +60,7 @@ def cat_url(root_url: str, relative_path: str) -> str:
         return relative_path
     else:
         return root_url[:-1] + relative_path
+
 
 # Simple function for scraping static page and converting it to a soup
 def scrape_web_soup(url: str) -> BeautifulSoup | None:

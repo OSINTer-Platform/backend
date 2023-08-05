@@ -37,6 +37,7 @@ def initiate_db() -> None:
             else:
                 logger.info(f"The {index_name} already exists, skipping.")
 
+
 app.command("scrape")(scrape)
 
 

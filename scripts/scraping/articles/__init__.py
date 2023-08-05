@@ -22,18 +22,18 @@ from scripts import config_options
 logger = logging.getLogger("osinter")
 
 
-class custom_md_converter(MarkdownConverter):
-    def convert_figure(self, el, text, _):
+class custom_md_converter(MarkdownConverter):  # type: ignore
+    def convert_figure(self, el: Any, text: str, _: bool) -> str:
         self.process_tag(el, False, children_only=True)
         return text + "\n\n"
 
-    def convert_a(self, el, text, convert_as_inline):
+    def convert_a(self, el: Any, text: str, convert_as_inline: bool) -> str:
         try:
             del el["title"]
         except KeyError:
             pass
 
-        return super().convert_a(el, text, convert_as_inline)
+        return cast(str, super().convert_a(el, text, convert_as_inline))
 
 
 # Function for gathering list of URLs for articles from newssite
@@ -120,9 +120,7 @@ def handle_single_article(url: str, current_profile: dict[str, Any]) -> FullArti
     ).convert(article_text)
 
     # Generate the tags
-    current_article.tags["automatic"] = generate_tags(
-        tokenize_text(article_clear_text)
-    )
+    current_article.tags["automatic"] = generate_tags(tokenize_text(article_clear_text))
     current_article.tags["interresting"] = locate_objects_of_interrest(
         article_clear_text
     )

@@ -52,7 +52,7 @@ def calculate_profile(value: str) -> str:
             )
 
 
-def profile_tester(profile_name, custom_url=""):
+def profile_tester(profile_name: str, custom_url: str = "") -> None:
     current_profile = get_profile(profile_name)
 
     if custom_url:
