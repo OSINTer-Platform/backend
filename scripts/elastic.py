@@ -2,13 +2,19 @@ from enum import Enum
 import json
 import logging
 import os
+from datetime import datetime, timezone
 from typing import Any
 
 from elasticsearch import BadRequestError
 from elasticsearch.client import IndicesClient
+from pydantic import Field
 import typer
 
-from modules.elastic import ES_INDEX_CONFIGS, SearchQuery
+from modules.elastic import (
+    ES_INDEX_CONFIGS,
+    ElasticDB,
+    SearchQuery,
+)
 from modules.files import convert_article_to_md
 from modules.objects import FullArticle
 
@@ -101,6 +107,55 @@ def articles_to_json(export_filename: str) -> None:
 
     with open(export_filename, "w") as export_file:
         json.dump(article_dicts, export_file, default=str)
+
+
+class FullArticleNoTimezone(FullArticle):
+    publish_date: datetime
+    inserted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+@app.command()
+def add_timezone() -> None:
+    customElasticDB = ElasticDB[FullArticleNoTimezone](
+        es_conn=config_options.es_conn,
+        index_name=config_options.ELASTICSEARCH_ARTICLE_INDEX,
+        unique_field="url",
+        source_category="profile",
+        weighted_search_fields=["title^5", "description^3", "content"],
+        document_object_classes=FullArticleNoTimezone,
+        essential_fields=[
+            "title",
+            "description",
+            "url",
+            "image_url",
+            "profile",
+            "source",
+            "publish_date",
+            "inserted_at",
+        ],
+    )
+    logger.debug("Downloading articles")
+    articles = customElasticDB.query_documents(SearchQuery(limit=0, complete=True))
+
+    logger.debug(f"Converting {len(articles)} articles")
+    converted_articles: list[FullArticle] = []
+
+    for article in articles:
+        modified = False
+        if article.publish_date.tzinfo is None:
+            modified = True
+            article.publish_date = article.publish_date.replace(tzinfo=timezone.utc)
+
+        if article.inserted_at.tzinfo is None:
+            modified = True
+            article.inserted_at = article.inserted_at.replace(tzinfo=timezone.utc)
+
+        if modified:
+            converted_articles.append(article)
+
+    logger.debug(f"Converted {len(converted_articles)} articles. Uploading changes")
+
+    config_options.es_article_client.save_documents(converted_articles)
 
 
 @app.command()
