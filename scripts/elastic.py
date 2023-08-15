@@ -27,9 +27,7 @@ app = typer.Typer()
 
 
 class ESIndex(str, Enum):
-    ELASTICSEARCH_TWEET_INDEX = "TWEET"
     ELASTICSEARCH_ARTICLE_INDEX = "ARTICLE"
-    ELASTICSEARCH_USER_INDEX = "USER"
 
 
 @app.command()
