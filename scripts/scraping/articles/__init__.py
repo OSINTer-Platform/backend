@@ -105,7 +105,7 @@ def handle_single_article(url: str, current_profile: dict[str, Any]) -> FullArti
         url=cast(HttpUrl, url),
         profile=current_profile["source"]["profile_name"],
         source=current_profile["source"]["name"],
-        **article_meta_information.dict(),
+        **article_meta_information.model_dump(),
     )
 
     article_text, article_clear_text = extract_article_content(

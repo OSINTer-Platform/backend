@@ -99,7 +99,7 @@ def articles_to_json(export_filename: str) -> None:
     logger.debug("Converting articles to json objects")
 
     for article in articles:
-        article_dicts.append(article.dict())
+        article_dicts.append(article.model_dump(mode="json"))
 
     logger.debug("Writing articles to json file")
 
