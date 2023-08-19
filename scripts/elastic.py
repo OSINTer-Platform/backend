@@ -16,7 +16,7 @@ from modules.elastic import (
     SearchQuery,
 )
 from modules.files import convert_article_to_md
-from modules.objects import FullArticle
+from modules.objects import BaseArticle, FullArticle
 
 from . import config_options
 
@@ -114,13 +114,13 @@ class FullArticleNoTimezone(FullArticle):
 
 @app.command()
 def add_timezone() -> None:
-    customElasticDB = ElasticDB[FullArticleNoTimezone](
+    customElasticDB = ElasticDB[BaseArticle | FullArticleNoTimezone](
         es_conn=config_options.es_conn,
         index_name=config_options.ELASTICSEARCH_ARTICLE_INDEX,
         unique_field="url",
         source_category="profile",
         weighted_search_fields=["title^5", "description^3", "content"],
-        document_object_classes=FullArticleNoTimezone,
+        document_object_classes={"base" : BaseArticle, "full" : FullArticleNoTimezone},
         essential_fields=[
             "title",
             "description",
@@ -133,7 +133,7 @@ def add_timezone() -> None:
         ],
     )
     logger.debug("Downloading articles")
-    articles = customElasticDB.query_documents(SearchQuery(limit=0, complete=True))
+    articles = cast(list[FullArticleNoTimezone], customElasticDB.query_documents(SearchQuery(limit=0, complete=True)))
 
     logger.debug(f"Converting {len(articles)} articles")
     converted_articles: list[FullArticle] = []
