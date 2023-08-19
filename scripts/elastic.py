@@ -3,7 +3,7 @@ import json
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, cast
 
 from elasticsearch import BadRequestError
 from elasticsearch.client import IndicesClient
@@ -204,8 +204,11 @@ def articles_to_md(destination: str) -> None:
     for profile in profiles:
         logger.info(f"Downloading list of articles for {profile}")
 
-        articles = config_options.es_article_client.query_documents(
-            SearchQuery(complete=True, limit=0, source_category=set(profile))
+        articles: list[FullArticle] = cast(
+            list[FullArticle],
+            config_options.es_article_client.query_documents(
+                SearchQuery(complete=True, limit=0, source_category=set(profile))
+            ),
         )
 
         try:
