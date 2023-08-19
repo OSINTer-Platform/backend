@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 import logging
 from typing import Any, cast
 
@@ -95,17 +94,10 @@ def handle_single_article(url: str, current_profile: dict[str, Any]) -> FullArti
     articles_source = scrape_page_dynamic(url, scraping_types)
     article_soup = bs(articles_source, "html.parser")
 
-    article_meta_information = extract_meta_information(
+    article_meta = extract_meta_information(
         article_soup,
         current_profile["scraping"]["meta"],
         current_profile["source"]["address"],
-    )
-
-    current_article = FullArticle(
-        url=cast(HttpUrl, url),
-        profile=current_profile["source"]["profile_name"],
-        source=current_profile["source"]["name"],
-        **article_meta_information.model_dump(),
     )
 
     article_text, article_clear_text = extract_article_content(
@@ -114,18 +106,26 @@ def handle_single_article(url: str, current_profile: dict[str, Any]) -> FullArti
 
     article_clear_text = clean_text(article_clear_text)
 
-    current_article.content = article_clear_text
-    current_article.formatted_content = custom_md_converter(
-        heading_style="closed_atx"
-    ).convert(article_text)
+    current_article = FullArticle(
+        title=article_meta.title,
+        description=article_meta.description,
+        image_url=HttpUrl(article_meta.image_url),
+        publish_date=article_meta.publish_date,
+        author=article_meta.author,
+        url=HttpUrl(url),
+        profile=current_profile["source"]["profile_name"],
+        source=current_profile["source"]["name"],
+        content=article_clear_text,
+        formatted_content=custom_md_converter(heading_close="closed_atx").convert(
+            article_text
+        ),
+    )
 
     # Generate the tags
     current_article.tags["automatic"] = generate_tags(tokenize_text(article_clear_text))
     current_article.tags["interresting"] = locate_objects_of_interrest(
         article_clear_text
     )
-
-    current_article.inserted_at = datetime.now(timezone.utc)
 
     return current_article
 

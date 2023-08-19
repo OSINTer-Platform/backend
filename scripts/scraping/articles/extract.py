@@ -17,8 +17,8 @@ json_patterns = {
 
 class OGTags(BaseModel):
     author: str | None
-    title: str | None
-    description: str | None
+    title: str
+    description: str
     image_url: str
     publish_date: Annotated[datetime, AwareDatetime]
 
@@ -130,9 +130,15 @@ def extract_meta_information(
     if publish_date.tzinfo is None:
         publish_date = publish_date.replace(tzinfo=timezone.utc)
 
+    title = extract_with_selector(scraping_targets["title"])
+    description = extract_with_selector(scraping_targets["description"])
+
+    if not title or not description:
+        raise Exception("Either title or description wasn't available")
+
     return OGTags(
-        title=extract_with_selector(scraping_targets["title"]),
-        description=extract_with_selector(scraping_targets["description"]),
+        title=title,
+        description=description,
         image_url=extract_with_selector(scraping_targets["image_url"])
         or f"{site_url}/favicon.ico",
         author=extract_with_selector(scraping_targets["author"])
