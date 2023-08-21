@@ -3,7 +3,7 @@ import json
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Any, cast
+from typing import Any
 
 from elasticsearch import BadRequestError
 from elasticsearch.client import IndicesClient
@@ -91,7 +91,7 @@ def reindex(index: ESIndex) -> None:
 def articles_to_json(export_filename: str) -> None:
     logger.debug("Downloading articles")
     articles = config_options.es_article_client.query_documents(
-        ArticleSearchQuery(limit=0, complete=True)
+        ArticleSearchQuery(limit=0), True
     )
 
     article_dicts = []
@@ -125,10 +125,7 @@ def add_timezone() -> None:
         },
     )
     logger.debug("Downloading articles")
-    articles = cast(
-        list[FullArticleNoTimezone],
-        customElasticDB.query_documents(ArticleSearchQuery(limit=0, complete=True)),
-    )
+    articles = customElasticDB.query_documents(ArticleSearchQuery(limit=0), True)
 
     logger.debug(f"Converting {len(articles)} articles")
     converted_articles: list[FullArticle] = []
@@ -199,11 +196,8 @@ def articles_to_md(destination: str) -> None:
     for profile in profiles:
         logger.info(f"Downloading list of articles for {profile}")
 
-        articles: list[FullArticle] = cast(
-            list[FullArticle],
-            config_options.es_article_client.query_documents(
-                ArticleSearchQuery(complete=True, limit=0, sources=set(profile))
-            ),
+        articles = config_options.es_article_client.query_documents(
+            ArticleSearchQuery(limit=0, sources=set(profile)), True
         )
 
         try:
