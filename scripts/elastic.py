@@ -12,8 +12,8 @@ import typer
 
 from modules.elastic import (
     ES_INDEX_CONFIGS,
+    ArticleSearchQuery,
     ElasticDB,
-    SearchQuery,
 )
 from modules.files import convert_article_to_md
 from modules.objects import BaseArticle, FullArticle
@@ -91,7 +91,7 @@ def reindex(index: ESIndex) -> None:
 def articles_to_json(export_filename: str) -> None:
     logger.debug("Downloading articles")
     articles = config_options.es_article_client.query_documents(
-        SearchQuery(limit=0, complete=True)
+        ArticleSearchQuery(limit=0, complete=True)
     )
 
     article_dicts = []
@@ -114,26 +114,21 @@ class FullArticleNoTimezone(FullArticle):
 
 @app.command()
 def add_timezone() -> None:
-    customElasticDB = ElasticDB[BaseArticle | FullArticleNoTimezone](
+    customElasticDB = ElasticDB[BaseArticle, FullArticleNoTimezone, ArticleSearchQuery](
         es_conn=config_options.es_conn,
         index_name=config_options.ELASTICSEARCH_ARTICLE_INDEX,
         unique_field="url",
-        source_category="profile",
-        weighted_search_fields=["title^5", "description^3", "content"],
-        document_object_classes={"base" : BaseArticle, "full" : FullArticleNoTimezone},
-        essential_fields=[
-            "title",
-            "description",
-            "url",
-            "image_url",
-            "profile",
-            "source",
-            "publish_date",
-            "inserted_at",
-        ],
+        document_object_classes={
+            "base": BaseArticle,
+            "full": FullArticleNoTimezone,
+            "search_query": ArticleSearchQuery,
+        },
     )
     logger.debug("Downloading articles")
-    articles = cast(list[FullArticleNoTimezone], customElasticDB.query_documents(SearchQuery(limit=0, complete=True)))
+    articles = cast(
+        list[FullArticleNoTimezone],
+        customElasticDB.query_documents(ArticleSearchQuery(limit=0, complete=True)),
+    )
 
     logger.debug(f"Converting {len(articles)} articles")
     converted_articles: list[FullArticle] = []
@@ -199,7 +194,7 @@ def articles_to_md(destination: str) -> None:
         pass
 
     logger.info("Downloading list of profiles...")
-    profiles = list(config_options.es_article_client.get_unique_values())
+    profiles = list(config_options.es_article_client.get_unique_values("profile"))
 
     for profile in profiles:
         logger.info(f"Downloading list of articles for {profile}")
@@ -207,7 +202,7 @@ def articles_to_md(destination: str) -> None:
         articles: list[FullArticle] = cast(
             list[FullArticle],
             config_options.es_article_client.query_documents(
-                SearchQuery(complete=True, limit=0, source_category=set(profile))
+                ArticleSearchQuery(complete=True, limit=0, sources=set(profile))
             ),
         )
 
