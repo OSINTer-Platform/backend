@@ -7,8 +7,10 @@ from typing import Any
 
 from elasticsearch import BadRequestError
 from elasticsearch.client import IndicesClient
-from pydantic import Field
+from pydantic import Field, ValidationError
+
 import typer
+from rich import print_json
 
 from modules.elastic import (
     ES_INDEX_CONFIGS,
@@ -146,6 +148,74 @@ def add_timezone() -> None:
     logger.debug(f"Converted {len(converted_articles)} articles. Uploading changes")
 
     config_options.es_article_client.save_documents(converted_articles)
+
+
+@app.command()
+def clean_up() -> None:
+    def get_binary_user_input(prompt: str) -> bool:
+        user_input: str = ""
+        while True:
+            user_input = input(f"{prompt} [y/n]: ").lower()
+
+            if user_input in ["y", "n"]:
+                break
+
+            print("Wrong answer")
+        return user_input == "y"
+
+    def modify_doc(doc: dict[str, Any]) -> None | FullArticle:
+        try:
+            validated_doc = FullArticle.model_validate(doc["_source"])
+            validated_doc.id = doc["_id"]
+            return validated_doc
+        except ValidationError as e:
+            if get_binary_user_input(
+                "The document cannot validate. Do you want to try and fix it?"
+            ):
+                print("\n\nModify the following fields to fix the error:\n")
+                for error in e.errors():
+                    field_name = error["loc"][0]
+
+                    print(f"Field: {field_name}")
+                    print(f"URL: {doc['_source']['url']}")
+                    print(f"Previous value: {doc['_source'][field_name]}")
+                    print(f"Error messages: {error['msg']}")
+                    doc["_source"][field_name] = input(
+                        f"Please enter a new value for {field_name}: "
+                    )
+
+                return modify_doc(doc)
+            else:
+                return None
+
+    logger.info("Downloading all articles")
+    search_q = ArticleSearchQuery(limit=0)
+    articles, invalid_docs = config_options.es_article_client._query_large(
+        search_q.generate_es_query(True), True
+    )
+
+    logger.info(
+        f"Downloaded {len(articles)} articles and {len(invalid_docs)} invalid documents"
+    )
+
+    for doc in invalid_docs:
+        print_json(data=doc["_source"])
+
+        if get_binary_user_input("Delete the previous document?"):
+            print("Removing document")
+            config_options.es_article_client.delete_document(
+                {
+                    doc["_id"],
+                }
+            )
+        else:
+            modified_doc = modify_doc(doc)
+
+            if modified_doc:
+                print("Document now validates, saving it")
+                config_options.es_article_client.save_document(modified_doc)
+            else:
+                print("Skipping to next document")
 
 
 @app.command()
