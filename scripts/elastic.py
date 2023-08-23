@@ -21,6 +21,11 @@ from modules.files import article_to_md
 from modules.objects import BaseArticle, FullArticle
 
 from . import config_options
+from .scraping.articles.text import (
+    generate_tags,
+    locate_objects_of_interrest,
+    tokenize_text,
+)
 
 logger = logging.getLogger("osinter")
 
@@ -148,6 +153,24 @@ def add_timezone() -> None:
     logger.debug(f"Converted {len(converted_articles)} articles. Uploading changes")
 
     config_options.es_article_client.save_documents(converted_articles)
+
+
+@app.command()
+def regenerate_tags() -> None:
+    logger.debug("Downloading articles")
+    articles = config_options.es_article_client.query_all_documents()
+
+    logger.debug(f"Converting {len(articles)} articles")
+
+    for i, article in enumerate(articles):
+        article.tags["automatic"] = generate_tags(tokenize_text(article.content))
+
+        article.tags["interresting"] = locate_objects_of_interrest(article.content)
+
+        logger.debug(f"Converted number {i}")
+
+    logger.debug("Saving articles")
+    config_options.es_article_client.save_documents(articles)
 
 
 @app.command()
