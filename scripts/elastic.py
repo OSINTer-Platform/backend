@@ -17,7 +17,7 @@ from modules.elastic import (
     ArticleSearchQuery,
     ElasticDB,
 )
-from modules.files import convert_article_to_md
+from modules.files import article_to_md
 from modules.objects import BaseArticle, FullArticle
 
 from . import config_options
@@ -278,9 +278,9 @@ def articles_to_md(destination: str) -> None:
         logger.info(f"Converting {len(articles)} articles for {profile}")
 
         for article in articles:
-            article_md = convert_article_to_md(article)
+            article_md = article_to_md(article)
 
             with open(
                 os.path.join(folder_path, profile, f"{article.id}.md"), "w"
             ) as article_file:
-                article_file.write(article_md.getvalue())
+                article_file.write(article_md)

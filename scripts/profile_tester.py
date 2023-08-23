@@ -8,7 +8,7 @@ from rich.markdown import Markdown as MD
 from rich.console import Console
 from rich.table import Table
 
-from modules.files import convert_article_to_md
+from modules.files import article_to_md
 from modules.profiles import get_profile, get_profiles, list_profiles
 from scripts.scraping.articles import gather_article_urls, handle_single_article
 
@@ -69,7 +69,7 @@ def profile_tester(profile_name: str, custom_url: str = "") -> None:
 
     for article in articles:
         os.system(f"firefox {article.url}")
-        article_string += convert_article_to_md(article).getvalue() + "\n\n"
+        article_string += article_to_md(article) + "\n\n"
 
     with open("./articles.md", "w") as f:
         f.write(article_string)
