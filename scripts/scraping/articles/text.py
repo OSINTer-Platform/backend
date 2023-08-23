@@ -63,13 +63,8 @@ class ObjectsOfInterrest(TypedDict):
     tag: bool
 
 
-class ResultsStore(TypedDict):
-    results: list[str]
-    tag: bool
-
-
 # Function for locating interresting bits and pieces in an article like ip adresses and emails
-def locate_objects_of_interrest(clear_text: str) -> dict[str, ResultsStore]:
+def locate_objects_of_interrest(clear_text: str) -> dict[str, list[str]]:
     objects: dict[str, ObjectsOfInterrest] = {
         "ipv4-adresses": {
             "pattern": re.compile(r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b"),
@@ -113,7 +108,7 @@ def locate_objects_of_interrest(clear_text: str) -> dict[str, ResultsStore]:
             "tag": False,
         },
     }
-    results: dict[str, ResultsStore] = {}
+    results: dict[str, list[str]] = {}
 
     for object_name in objects:
         # Sometimes the regex's will return a tuple of the result split up based on the groups in the regex. This will combine each of the, before reuniting them as a list
@@ -124,9 +119,6 @@ def locate_objects_of_interrest(clear_text: str) -> dict[str, ResultsStore]:
 
         if result != []:
             # Removing duplicates from result list by converting it to a set and then back to list
-            results[object_name] = {
-                "results": list(set(result)),
-                "tag": objects[object_name]["tag"],
-            }
+            results[object_name] = list(set(result))
 
     return results

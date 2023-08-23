@@ -119,12 +119,10 @@ def handle_single_article(url: str, current_profile: dict[str, Any]) -> FullArti
         formatted_content=custom_md_converter(heading_close="closed_atx").convert(
             article_text
         ),
-    )
-
-    # Generate the tags
-    current_article.tags["automatic"] = generate_tags(tokenize_text(article_clear_text))
-    current_article.tags["interresting"] = locate_objects_of_interrest(
-        article_clear_text
+        tags={
+            "automatic": generate_tags(tokenize_text(article_clear_text)),
+            "interresting": locate_objects_of_interrest(article_clear_text),
+        },
     )
 
     return current_article
