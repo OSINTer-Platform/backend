@@ -253,9 +253,13 @@ def json_to_articles(import_filename: str) -> None:
     )
     remote_article_urls: list[str] = [
         article_url
-        for article in config_options.es_article_client.query_all_documents()
+        for article in config_options.es_article_client.query_documents(
+            ArticleSearchQuery(limit=0), False
+        )
         if (article_url := getattr(article, "url", None))
     ]
+
+    logger.debug(f"Downloaded {len(remote_article_urls)} articles")
 
     logger.debug("Removing articles that's already stored in DB")
 
@@ -269,7 +273,12 @@ def json_to_articles(import_filename: str) -> None:
 
     logger.debug(f"Saving {len(new_articles)} new articles")
 
-    saved_count: int = config_options.es_article_client.save_documents(new_articles)
+    saved_count: int = 0
+    for i, article_list in enumerate(
+        [new_articles[i : i + 1000] for i in range(0, len(new_articles), 1000)]
+    ):
+        logger.debug(f"Saving batch nr {i}")
+        saved_count += config_options.es_article_client.save_documents(article_list)
 
     logger.info(f"Saved {saved_count} new articles")
 
