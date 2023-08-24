@@ -32,16 +32,20 @@ def extract_article_content(
         except:
             return None
 
-    def clean_soup(soup: BeautifulSoup, remove_selectors: str) -> BeautifulSoup:
-        for css_selector in remove_selectors.split(";"):
+    def clean_soup(soup: BeautifulSoup, profile_remove_selectors: str) -> BeautifulSoup:
+        remove_selectors = ["style", "script"]
+
+        if profile_remove_selectors:
+            remove_selectors.extend(profile_remove_selectors.split(";"))
+
+        for css_selector in remove_selectors:
             for tag in soup.select(css_selector):
                 tag.decompose()
 
         return soup
 
     # Clean the textlist for unwanted html elements
-    if selectors["remove"] != "":
-        soup = clean_soup(soup, selectors["remove"])
+    soup = clean_soup(soup, selectors["remove"])
 
     text_list = locate_content(selectors["container"], soup)
 
