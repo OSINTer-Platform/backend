@@ -13,8 +13,8 @@ selenium
 # For converting from html to markdown
 markdownify
 
-# For parsing dates from LD+JSON data
-python-dateutil
+# For parsing dates
+dateparser
 
 # For connecting with the elasticsearch backend
 elasticsearch
@@ -26,3 +26,4 @@ pydantic
 
 typer
 Rich
+python-dotenv
