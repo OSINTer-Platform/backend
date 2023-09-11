@@ -1,17 +1,13 @@
-from enum import Enum
 import logging
 from datetime import datetime, timezone
 from typing import Any
 
-from elasticsearch import BadRequestError
-from elasticsearch.client import IndicesClient
 from pydantic import Field, ValidationError
 
 import typer
 from rich import print_json
 
 from modules.elastic import (
-    ES_INDEX_CONFIGS,
     ArticleSearchQuery,
     ElasticDB,
 )
@@ -28,67 +24,6 @@ logger = logging.getLogger("osinter")
 
 
 app = typer.Typer()
-
-
-class ESIndex(str, Enum):
-    ELASTICSEARCH_ARTICLE_INDEX = "ARTICLE"
-
-
-@app.command()
-def reindex(index: ESIndex) -> None:
-    index_name: str = config_options[index.name]
-    backup_name: str = f"{index_name}_backup"
-
-    index_config: dict[str, Any] = ES_INDEX_CONFIGS[index.name]
-    es_index_client = IndicesClient(config_options.es_conn)
-
-    logger.debug("Creating empty backup index")
-
-    try:
-        es_index_client.delete(index=backup_name)
-    except BadRequestError as e:
-        if e.status_code != 404:
-            raise e
-
-    original_index_config = es_index_client.get_mapping(index=index_name)[index_name][
-        "mappings"
-    ]
-    es_index_client.create(index=backup_name, mappings=original_index_config)
-
-    logger.debug("Copying main index to backup index")
-    config_options.es_conn.reindex(
-        dest={"index": backup_name}, source={"index": index_name}
-    )
-
-    logger.debug("Emptying main index and updating index mappings")
-    es_index_client.delete(index=index_name)
-    es_index_client.create(index=index_name, mappings=index_config)
-
-    try:
-        logger.debug("Attempting to reindex backup into new main index")
-        config_options.es_conn.reindex(
-            dest={"index": index_name}, source={"index": backup_name}
-        )
-    except:
-        logger.critical(
-            "Error when reindexing, attempting to recover original index from backup"
-        )
-
-        try:
-            logger.debug("Emptying main index and reverting to old mappings")
-            es_index_client.delete(index=index_name)
-            es_index_client.create(index=index_name, mappings=original_index_config)
-
-            logger.debug("Attempting to recover original index contents from backup")
-            config_options.es_conn.reindex(
-                dest={"index": index_name}, source={"index": backup_name}
-            )
-        except:
-            logger.critical(
-                f'Error when attempting to recovering original index from backup, please manually recover "{index_name}" from the backup "{backup_name}"'
-            )
-
-        raise
 
 
 class FullArticleNoTimezone(FullArticle):
