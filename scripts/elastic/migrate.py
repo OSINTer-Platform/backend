@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime, timezone
+from hashlib import md5
 from typing import Any
 
 from pydantic import Field, ValidationError
@@ -151,3 +152,28 @@ def clean_up() -> None:
                 config_options.es_article_client.save_document(modified_doc)
             else:
                 print("Skipping to next document")
+
+
+@app.command()
+def update_ids() -> None:
+    logger.debug("Downloading articles")
+    articles = config_options.es_article_client.query_all_documents()
+
+    logger.debug(f"Updating ids on {len(articles)} articles")
+
+    articles_to_remove: set[str] = set()
+    articles_to_save: list[FullArticle] = []
+
+    for article in articles:
+        hash = md5(str(article.url).encode("utf-8")).hexdigest()
+        if hash != article.id:
+            articles_to_remove.add(article.id)
+            article.id = hash
+            articles_to_save.append(article)
+
+
+    logger.debug(f"Saving {len(articles_to_save)} new articles")
+    config_options.es_article_client.save_documents(articles_to_save)
+
+    logger.debug(f"Removing {len(articles_to_remove)} old articles")
+    config_options.es_article_client.delete_document(articles_to_remove)
