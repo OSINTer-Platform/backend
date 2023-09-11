@@ -66,7 +66,6 @@ def json_to_articles(import_filename: str) -> None:
     for article in local_articles:
         if article["url"] not in remote_article_urls:
             current_article_object = FullArticle(**article)
-            current_article_object.id = None
             new_articles.append(current_article_object)
 
     logger.debug(f"Saving {len(new_articles)} new articles")

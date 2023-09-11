@@ -1,3 +1,4 @@
+from hashlib import md5
 import logging
 from typing import Any, cast
 
@@ -107,6 +108,7 @@ def handle_single_article(url: str, current_profile: dict[str, Any]) -> FullArti
     article_clear_text = clean_text(article_clear_text)
 
     current_article = FullArticle(
+        id=md5(str(url).encode("utf-8")).hexdigest(),
         title=article_meta.title,
         description=article_meta.description,
         image_url=HttpUrl(article_meta.image_url),
