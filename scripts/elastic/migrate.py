@@ -171,7 +171,6 @@ def update_ids() -> None:
             article.id = hash
             articles_to_save.append(article)
 
-
     logger.debug(f"Saving {len(articles_to_save)} new articles")
     config_options.es_article_client.save_documents(articles_to_save)
 
