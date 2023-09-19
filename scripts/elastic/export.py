@@ -22,9 +22,7 @@ app = typer.Typer()
 @app.command()
 def articles_to_json(export_filename: str) -> None:
     logger.debug("Downloading articles")
-    articles = config_options.es_article_client.query_documents(
-        ArticleSearchQuery(limit=0), True
-    )
+    articles = config_options.es_article_client.query_all_documents()
 
     article_dicts = []
 
@@ -95,9 +93,7 @@ def articles_to_md(destination: str) -> None:
     for profile in profiles:
         logger.info(f"Downloading list of articles for {profile}")
 
-        articles = config_options.es_article_client.query_documents(
-            ArticleSearchQuery(limit=0, sources=set(profile)), True
-        )
+        articles = config_options.es_article_client.query_all_documents()
 
         try:
             os.mkdir(os.path.join(folder_path, profile))
