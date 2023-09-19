@@ -24,14 +24,16 @@ def articles_to_json(export_filename: str) -> None:
     logger.debug("Downloading articles")
     articles = config_options.es_article_client.query_all_documents()
 
-    article_dicts = []
+    logger.debug(
+        f"Downloaded {len(articles)} articles. Converting them to json objects"
+    )
 
-    logger.debug("Converting articles to json objects")
+    article_dicts = []
 
     for article in articles:
         article_dicts.append(article.model_dump(mode="json"))
 
-    logger.debug("Writing articles to json file")
+    logger.debug(f"Converted {len(article_dicts)} articles. Writing them to json file")
 
     with open(export_filename, "w") as export_file:
         json.dump(article_dicts, export_file, default=str)
