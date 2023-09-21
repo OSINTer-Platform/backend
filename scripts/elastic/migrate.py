@@ -39,6 +39,8 @@ def add_timezone() -> None:
     ](
         es_conn=config_options.es_conn,
         index_name=config_options.ELASTICSEARCH_ARTICLE_INDEX,
+        ingest_pipeline=config_options.ELASTICSEARCH_ELSER_PIPELINE,
+        elser_model_id=config_options.ELASTICSEARCH_ELSER_ID,
         unique_field="url",
         document_object_classes={
             "base": BaseArticle,
