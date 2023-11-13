@@ -4,7 +4,7 @@ from typing import Any, cast
 
 from bs4 import BeautifulSoup as bs
 from markdownify import MarkdownConverter  # type: ignore
-from pydantic import HttpUrl, ValidationError
+from pydantic import HttpUrl
 
 from modules.objects import FullArticle
 from modules.profiles import Profile, get_profile, get_profiles
@@ -139,7 +139,7 @@ def scrape_using_profile(article_url_list: list[str], profile_name: str) -> None
         try:
             current_article = handle_single_article(url, current_profile)
             config_options.es_article_client.save_document(current_article)
-        except ValidationError as e:
+        except Exception as e:
             logger.error(
                 f'Encountered problem with article with URL "{url}", skipping for now. Error: {e}'
             )

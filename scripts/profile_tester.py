@@ -1,7 +1,6 @@
 import logging
 import os
 from typing import Literal
-from pydantic import ValidationError
 
 import typer
 
@@ -67,7 +66,7 @@ def profile_tester(profile_name: str, custom_url: str = "") -> None:
 
         try:
             articles.append(handle_single_article(url, current_profile))
-        except ValidationError as e:
+        except Exception as e:
             logger.error(
                 f'Encountered problem with article with URL "{url}", skipping for now. Error: {e}'
             )
