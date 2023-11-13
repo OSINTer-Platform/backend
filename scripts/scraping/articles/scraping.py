@@ -11,6 +11,8 @@ import requests
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 
+from modules.profiles import Profile
+
 logger = logging.getLogger("osinter")
 
 # Used for simulating an actual browser when scraping for OGTags, stolen from here
@@ -75,67 +77,81 @@ def scrape_web_soup(url: str) -> BeautifulSoup | None:
 
 
 def scrape_article_urls(
-    root_url: str,
-    front_page_url: str,
-    scraping_targets: dict[str, Any],
-    profile_name: str,
+    profile: Profile,
+    web_soups: list[BeautifulSoup] | None = None,
     max_url_count: int = 10,
-    web_soup: BeautifulSoup | None = None,
 ) -> list[str]:
-    if not web_soup:
-        web_soup = scrape_web_soup(front_page_url)
-
-    if web_soup is None:
-        raise Exception(f"Error when scraping article urls from {profile_name}")
-
-    # Getting a soup for the website
-    if scraping_targets["container_list"] != []:
-        if (
-            outer_container := web_soup.select_one(scraping_targets["container_list"])
-        ) is None:
-            raise Exception(
-                f"Error when scraping the specific container on front-page from {profile_name}"
+    def extract_links(soup: BeautifulSoup) -> list[str]:
+        # Getting a soup for the website
+        if profile.source.scraping_targets.container_list:
+            outer_container = soup.select_one(
+                profile.source.scraping_targets.container_list
             )
-    else:
-        outer_container = web_soup
+            if (outer_container) is None:
+                raise Exception(
+                    f"Error when scraping the specific container on front-page from {profile.source.profile_name}"
+                )
+        else:
+            outer_container = soup
 
-    inner_containers: list[element.Tag] = outer_container.select(
-        scraping_targets["link_containers"]
-    )
+        inner_containers: list[element.Tag] = outer_container.select(
+            profile.source.scraping_targets.link_containers
+        )
 
-    link_elements: list[element.Tag] = []
+        link_elements: list[element.Tag] = []
 
-    if not scraping_targets["links"]:
-        link_elements = inner_containers
-    else:
-        for container in inner_containers:
-            link_element = container.select_one(scraping_targets["links"])
+        if not profile.source.scraping_targets.links:
+            link_elements = inner_containers
+        else:
+            for container in inner_containers:
+                link_element = container.select_one(
+                    profile.source.scraping_targets.links
+                )
 
-            if link_element:
-                link_elements.append(link_element)
+                if link_element:
+                    link_elements.append(link_element)
 
-    raw_article_urls: list[str] = [
-        url
-        for link in link_elements[:max_url_count]
-        if isinstance((url := link.get("href")), str)
-    ]
+        raw_article_urls: list[str] = [
+            url
+            for link in link_elements[:max_url_count]
+            if isinstance((url := link.get("href")), str)
+        ]
 
-    return [cat_url(root_url, url) for url in raw_article_urls]
+        return [cat_url(profile.source.address, url) for url in raw_article_urls]
+
+    if not web_soups:
+        scraped_soups = [scrape_web_soup(url) for url in profile.source.news_paths]
+
+        if None in scraped_soups:
+            raise Exception(
+                f"Error when scraping article urls from {profile.source.profile_name}"
+            )
+
+        web_soups = cast(list[BeautifulSoup], scraped_soups)
+
+    links = [extract_links(soup) for soup in web_soups]
+    return [item for sublist in links for item in sublist]
 
 
 # Function for scraping a list of recent articles using the url to a RSS feed
 def get_article_urls_from_rss(
-    rss_url: str,
+    rss_urls: list[str],
     max_url_count: int = 10,
 ) -> list[str]:
-    # Parse the whole RSS feed
-    rss_feed = feedparser.parse(rss_url)
+    def parse_feed(url: str) -> list[Any]:
+        # Parse the whole RSS feed
+        rss_feed = feedparser.parse(url)
+        return [entry.id for entry in rss_feed.entries[:max_url_count]]
 
-    return [entry.id for entry in rss_feed.entries[:max_url_count]]
+    links = [parse_feed(url) for url in rss_urls]
+    return [item for sublist in links for item in sublist]
 
 
 def scrape_page_dynamic(
-    page_url: str, scraping_types: list[str], load_time: int = 3, headless: bool = True
+    page_url: str,
+    js_injections: list[str] | None,
+    load_time: int = 3,
+    headless: bool = True,
 ) -> str:
     # Setting the options for running the browser driver headlessly so it doesn't pop up when running the script
     driver_options = Options()
@@ -152,11 +168,10 @@ def scrape_page_dynamic(
         # Sleeping a pre-specified time to let the driver actually render the page properly
         time.sleep(load_time)
 
-        for scraping_type in scraping_types:
-            current_type = scraping_type.split(":")
-            if current_type[0] == "JS":
+        if js_injections:
+            for injection_name in js_injections:
                 with open(
-                    os.path.normcase(f"./profiles/js_injections/{current_type[1]}.js")
+                    os.path.normcase(f"./profiles/js_injections/{injection_name}.js")
                 ) as f:
                     js_script: str = f.read()
 
