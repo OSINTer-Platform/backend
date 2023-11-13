@@ -22,18 +22,18 @@ app = typer.Typer()
 @app.command()
 def articles_to_json(export_filename: str) -> None:
     logger.debug("Downloading articles")
-    articles = config_options.es_article_client.query_documents(
-        ArticleSearchQuery(limit=0), True
+    articles = config_options.es_article_client.query_all_documents()
+
+    logger.debug(
+        f"Downloaded {len(articles)} articles. Converting them to json objects"
     )
 
     article_dicts = []
 
-    logger.debug("Converting articles to json objects")
-
     for article in articles:
         article_dicts.append(article.model_dump(mode="json"))
 
-    logger.debug("Writing articles to json file")
+    logger.debug(f"Converted {len(article_dicts)} articles. Writing them to json file")
 
     with open(export_filename, "w") as export_file:
         json.dump(article_dicts, export_file, default=str)
@@ -97,7 +97,7 @@ def articles_to_md(destination: str) -> None:
 
         articles = config_options.es_article_client.query_documents(
             ArticleSearchQuery(limit=0, sources=set(profile)), True
-        )
+        )[0]
 
         try:
             os.mkdir(os.path.join(folder_path, profile))

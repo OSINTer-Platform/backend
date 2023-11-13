@@ -8,6 +8,8 @@ from bs4 import BeautifulSoup, Tag
 from bs4.element import ResultSet
 from pydantic import AwareDatetime, BaseModel
 
+from modules.profiles import ArticleContent, ArticleMeta
+
 # Used for matching the relevant information from LD+JSON
 json_patterns = {
     "publish_date": re.compile(r'("datePublished": ")(.*?)(?=")'),
@@ -24,7 +26,7 @@ class OGTags(BaseModel):
 
 
 def extract_article_content(
-    selectors: dict[str, str], soup: BeautifulSoup, delimiter: str = "\n"
+    selectors: ArticleContent, soup: BeautifulSoup, delimiter: str = "\n"
 ) -> tuple[str, str]:
     def locate_content(css_selector: str, soup: BeautifulSoup) -> ResultSet[Tag] | None:
         try:
@@ -32,11 +34,11 @@ def extract_article_content(
         except:
             return None
 
-    def clean_soup(soup: BeautifulSoup, profile_remove_selectors: str) -> BeautifulSoup:
+    def clean_soup(
+        soup: BeautifulSoup, profile_remove_selectors: list[str]
+    ) -> BeautifulSoup:
         remove_selectors = ["style", "script"]
-
-        if profile_remove_selectors:
-            remove_selectors.extend(profile_remove_selectors.split(";"))
+        remove_selectors.extend(profile_remove_selectors)
 
         for css_selector in remove_selectors:
             for tag in soup.select(css_selector):
@@ -45,9 +47,9 @@ def extract_article_content(
         return soup
 
     # Clean the textlist for unwanted html elements
-    soup = clean_soup(soup, selectors["remove"])
+    soup = clean_soup(soup, selectors.remove)
 
-    text_list = locate_content(selectors["container"], soup)
+    text_list = locate_content(selectors.container, soup)
 
     if text_list is None:
         raise Exception(
@@ -71,7 +73,7 @@ def extract_article_content(
 
 # Function for scraping meta information (like title, author and publish date) from articles. This both utilizes the OG tags and LD+JSON data, and while the proccess for extracting the OG tags is fairly simply as those is (nearly) always following the same standard, the LD+JSON data is a little more complicated. Here the data isn't parsed as JSON, but rather as a string where the relevant pieces of information is extracted using regex. It's probably ugly and definitly not the officially "right" way of doing this, but different placement of the information in the JSON object on different websites using different attributes made parsing the information from a python JSON object near impossible. As such, be warned that this function is not for the faint of heart
 def extract_meta_information(
-    page_soup: BeautifulSoup, scraping_targets: dict[str, str], site_url: str
+    page_soup: BeautifulSoup, scraping_targets: ArticleMeta, site_url: str
 ) -> OGTags:
     def extract_with_selector(selector: str) -> None | str:
         if "meta" in selector:
@@ -119,7 +121,7 @@ def extract_meta_information(
         return None
 
     def extract_datetime() -> datetime | None:
-        meta = extract_with_selector(scraping_targets["publish_date"])
+        meta = extract_with_selector(scraping_targets.publish_date)
         if meta:
             return date_parse(meta)
 
@@ -134,8 +136,8 @@ def extract_meta_information(
     if publish_date.tzinfo is None:
         publish_date = publish_date.replace(tzinfo=timezone.utc)
 
-    title = extract_with_selector(scraping_targets["title"])
-    description = extract_with_selector(scraping_targets["description"])
+    title = extract_with_selector(scraping_targets.title)
+    description = extract_with_selector(scraping_targets.description)
 
     if not title or not description:
         raise Exception("Either title or description wasn't available")
@@ -143,9 +145,9 @@ def extract_meta_information(
     return OGTags(
         title=title,
         description=description,
-        image_url=extract_with_selector(scraping_targets["image_url"])
+        image_url=extract_with_selector(scraping_targets.image_url)
         or f"{site_url}/favicon.ico",
-        author=extract_with_selector(scraping_targets["author"])
+        author=extract_with_selector(scraping_targets.author)
         or extract_json(json_patterns["author"]),
         publish_date=publish_date,
     )

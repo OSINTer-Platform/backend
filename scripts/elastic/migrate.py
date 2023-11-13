@@ -12,7 +12,7 @@ from modules.elastic import (
     ArticleSearchQuery,
     ElasticDB,
 )
-from modules.objects import BaseArticle, FullArticle
+from modules.objects import BaseArticle, FullArticle, PartialArticle
 
 from .. import config_options
 from ..scraping.articles.text import (
@@ -34,18 +34,23 @@ class FullArticleNoTimezone(FullArticle):
 
 @app.command()
 def add_timezone() -> None:
-    customElasticDB = ElasticDB[BaseArticle, FullArticleNoTimezone, ArticleSearchQuery](
+    customElasticDB = ElasticDB[
+        BaseArticle, PartialArticle, FullArticleNoTimezone, ArticleSearchQuery
+    ](
         es_conn=config_options.es_conn,
         index_name=config_options.ELASTICSEARCH_ARTICLE_INDEX,
+        ingest_pipeline=config_options.ELASTICSEARCH_ELSER_PIPELINE,
+        elser_model_id=config_options.ELASTICSEARCH_ELSER_ID,
         unique_field="url",
         document_object_classes={
             "base": BaseArticle,
+            "partial": PartialArticle,
             "full": FullArticleNoTimezone,
             "search_query": ArticleSearchQuery,
         },
     )
     logger.debug("Downloading articles")
-    articles = customElasticDB.query_documents(ArticleSearchQuery(limit=0), True)
+    articles = customElasticDB.query_all_documents()
 
     logger.debug(f"Converting {len(articles)} articles")
     converted_articles: list[FullArticle] = []
@@ -126,8 +131,8 @@ def clean_up() -> None:
 
     logger.info("Downloading all articles")
     search_q = ArticleSearchQuery(limit=0)
-    articles, invalid_docs = config_options.es_article_client._query_large(
-        search_q.generate_es_query(True), True
+    articles, invalid_docs = config_options.es_article_client.query_documents(
+        search_q, True
     )
 
     logger.info(
@@ -170,7 +175,6 @@ def update_ids() -> None:
             articles_to_remove.add(article.id)
             article.id = hash
             articles_to_save.append(article)
-
 
     logger.debug(f"Saving {len(articles_to_save)} new articles")
     config_options.es_article_client.save_documents(articles_to_save)
