@@ -83,6 +83,21 @@ def profile_tester(profile_name: str, custom_url: str = "") -> None:
 
 
 @app.command()
+def verify_profiles():
+    profiles = get_profiles()
+
+    injection_lists = [profile.scraping.js_injections for profile in profiles]
+    injections = [injection for sublist in injection_lists for injection in sublist]
+
+    for injection_name in injections:
+        path = os.path.normcase(f"./profiles/js_injections/{injection_name}.js")
+        if not os.path.exists(path):
+            raise Exception(f"JS Injection {injection_name} not found")
+
+    print("All profiles and JS injections are present and correct")
+
+
+@app.command()
 def manual_test(
     profile: str = typer.Option(
         ..., prompt=get_profile_prompt(), callback=calculate_profile
