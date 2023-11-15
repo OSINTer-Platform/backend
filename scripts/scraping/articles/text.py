@@ -3,6 +3,8 @@ import re
 from typing import TypedDict
 import unicodedata
 
+from modules.objects import TagsOfInterrest
+
 
 # Function for taking in text from article (or basically any source) and outputting a list of words cleaned for punctuation, sole numbers, double spaces and other things so that it can be used for text analyssis
 def clean_text(clear_text: str) -> str:
@@ -64,7 +66,7 @@ class ObjectsOfInterrest(TypedDict):
 
 
 # Function for locating interresting bits and pieces in an article like ip adresses and emails
-def locate_objects_of_interrest(clear_text: str) -> dict[str, list[str]]:
+def locate_objects_of_interrest(clear_text: str) -> list[TagsOfInterrest]:
     objects: dict[str, ObjectsOfInterrest] = {
         "ipv4-adresses": {
             "pattern": re.compile(r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b"),
@@ -108,7 +110,7 @@ def locate_objects_of_interrest(clear_text: str) -> dict[str, list[str]]:
             "tag": False,
         },
     }
-    results: dict[str, list[str]] = {}
+    results: list[TagsOfInterrest] = []
 
     for object_name in objects:
         # Sometimes the regex's will return a tuple of the result split up based on the groups in the regex. This will combine each of the, before reuniting them as a list
@@ -119,6 +121,6 @@ def locate_objects_of_interrest(clear_text: str) -> dict[str, list[str]]:
 
         if result != []:
             # Removing duplicates from result list by converting it to a set and then back to list
-            results[object_name] = list(set(result))
+            results.append({"name" : object_name, "values": result})
 
     return results
