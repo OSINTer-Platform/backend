@@ -82,7 +82,7 @@ def profile_tester(profile_name: str, custom_url: str = "") -> None:
 
 
 @app.command()
-def verify_profiles():
+def verify_profiles() -> None:
     profiles = get_profiles()
 
     injection_lists = [profile.scraping.js_injections for profile in profiles]
