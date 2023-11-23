@@ -14,6 +14,7 @@ from modules.elastic import (
 )
 from modules.objects import BaseArticle, FullArticle, PartialArticle
 
+from .utils import get_user_yes_no
 from .. import config_options
 from ..scraping.articles.text import (
     generate_tags,
@@ -93,24 +94,13 @@ def regenerate_tags() -> None:
 
 @app.command()
 def clean_up() -> None:
-    def get_binary_user_input(prompt: str) -> bool:
-        user_input: str = ""
-        while True:
-            user_input = input(f"{prompt} [y/n]: ").lower()
-
-            if user_input in ["y", "n"]:
-                break
-
-            print("Wrong answer")
-        return user_input == "y"
-
     def modify_doc(doc: dict[str, Any]) -> None | FullArticle:
         try:
             validated_doc = FullArticle.model_validate(doc["_source"])
             validated_doc.id = doc["_id"]
             return validated_doc
         except ValidationError as e:
-            if get_binary_user_input(
+            if get_user_yes_no(
                 "The document cannot validate. Do you want to try and fix it?"
             ):
                 print("\n\nModify the following fields to fix the error:\n")
@@ -142,7 +132,7 @@ def clean_up() -> None:
     for doc in invalid_docs:
         print_json(data=doc["_source"])
 
-        if get_binary_user_input("Delete the previous document?"):
+        if get_user_yes_no("Delete the previous document?"):
             print("Removing document")
             config_options.es_article_client.delete_document(
                 {

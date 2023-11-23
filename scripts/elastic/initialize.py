@@ -9,6 +9,7 @@ import typer
 
 from modules.elastic import ES_INDEX_CONFIGS
 
+from .utils import get_user_yes_no
 from .. import config_options
 
 import typer
@@ -35,7 +36,22 @@ def init_db() -> None:
             if e.status_code != 400 or e.error != "resource_already_exists_exception":
                 raise e
             else:
-                logger.info(f'The index "{index_name}" already exists, skipping.')
+                logger.info(f'The index "{index_name}" already exists.')
+
+                update_mapping = get_user_yes_no(
+                    "Index already exists. Do you want to attempt to update the mapping?"
+                )
+                if not update_mapping:
+                    continue
+
+                try:
+                    es_index_client.put_mapping(
+                        index=config_options[index_name],
+                        properties=ES_INDEX_CONFIGS[index_name]["properties"],
+                    )
+                    logger.debug(f'Succesfully updated mappings for "{index_name}".')
+                except BadRequestError:
+                    logger.exception("Updating mapping failed")
 
 
 @app.command()
