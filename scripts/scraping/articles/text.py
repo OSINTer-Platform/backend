@@ -121,6 +121,6 @@ def locate_objects_of_interrest(clear_text: str) -> list[TagsOfInterrest]:
 
         if result != []:
             # Removing duplicates from result list by converting it to a set and then back to list
-            results.append({"name" : object_name, "values": result})
+            results.append({"name": object_name, "values": result})
 
     return results
