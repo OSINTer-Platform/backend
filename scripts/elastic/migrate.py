@@ -18,7 +18,7 @@ from .utils import get_user_yes_no
 from .. import config_options
 from ..scraping.articles.text import (
     generate_tags,
-    locate_objects_of_interrest,
+    locate_objects_of_interest,
     tokenize_text,
 )
 
@@ -82,9 +82,9 @@ def regenerate_tags() -> None:
     logger.debug(f"Converting {len(articles)} articles")
 
     for i, article in enumerate(articles):
-        article.tags["automatic"] = generate_tags(tokenize_text(article.content))
+        article.tags.automatic = generate_tags(tokenize_text(article.content))
 
-        article.tags["interresting"] = locate_objects_of_interrest(article.content)
+        article.tags.interesting = locate_objects_of_interest(article.content)
 
         logger.debug(f"Converted number {i}")
 

@@ -29,7 +29,7 @@ def manual() -> None:
         print(article.title)
         print(article.description)
         print("\n\n", article.summary, "\n\n")
-        print(f"Tags: {' | '.join(article.tags['automatic'])}\n\n")
+        print(f"Tags: {' | '.join(article.tags.automatic)}\n\n")
         print("The following labels are available:")
         for i, label in enumerate(labels):
             print(f"{i}: {label}")
@@ -66,21 +66,17 @@ def manual() -> None:
     )[0]
 
     logger.info("Filtering articles")
-    articles_without_label = [
-        article
-        for article in articles
-        if not "labels" in article.ml or not article.ml["labels"]
-    ]
+    articles_without_label = [article for article in articles if not article.ml.labels]
 
     logger.info(f"Found {len(articles_without_label)} articles to label")
 
     for article in articles_without_label:
         console.clear()
         print_details(article)
-        article.ml["labels"] = get_labels()
+        article.ml.labels = get_labels()
 
-        if not article.ml["labels"]:
-            article.ml["labels"] = ["none"]
+        if not article.ml.labels:
+            article.ml.labels = ["none"]
 
         logger.info(f'Updating article with id "{article.id}"')
         print(f'Updating article with id "{article.id}"\n\n')

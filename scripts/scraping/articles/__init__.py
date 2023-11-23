@@ -6,10 +6,10 @@ from bs4 import BeautifulSoup as bs
 from markdownify import MarkdownConverter  # type: ignore
 from pydantic import HttpUrl
 
-from modules.objects import FullArticle
+from modules.objects import FullArticle, Tags
 from modules.profiles import Profile, get_profile, get_profiles
 
-from .text import clean_text, generate_tags, locate_objects_of_interrest, tokenize_text
+from .text import clean_text, generate_tags, locate_objects_of_interest, tokenize_text
 from .extract import extract_article_content, extract_meta_information
 from .scraping import (
     get_article_urls_from_rss,
@@ -113,10 +113,10 @@ def handle_single_article(url: str, current_profile: Profile) -> FullArticle:
         formatted_content=custom_md_converter(heading_close="closed_atx").convert(
             article_text
         ),
-        tags={
-            "automatic": generate_tags(tokenize_text(article_clear_text)),
-            "interresting": locate_objects_of_interrest(article_clear_text),
-        },
+        tags=Tags(
+            automatic=generate_tags(tokenize_text(article_clear_text)),
+            interesting=locate_objects_of_interest(article_clear_text),
+        ),
     )
 
     return current_article

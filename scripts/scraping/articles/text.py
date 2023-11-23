@@ -3,7 +3,7 @@ import re
 from typing import TypedDict
 import unicodedata
 
-from modules.objects import TagsOfInterrest
+from modules.objects import TagsOfInterest
 
 
 # Function for taking in text from article (or basically any source) and outputting a list of words cleaned for punctuation, sole numbers, double spaces and other things so that it can be used for text analyssis
@@ -60,14 +60,14 @@ def generate_tags(clear_text_list: list[str]) -> list[str]:
     return tag_list
 
 
-class ObjectsOfInterrest(TypedDict):
+class ObjectsOfInterest(TypedDict):
     pattern: re.Pattern[str]
     tag: bool
 
 
-# Function for locating interresting bits and pieces in an article like ip adresses and emails
-def locate_objects_of_interrest(clear_text: str) -> list[TagsOfInterrest]:
-    objects: dict[str, ObjectsOfInterrest] = {
+# Function for locating interesting bits and pieces in an article like ip adresses and emails
+def locate_objects_of_interest(clear_text: str) -> list[TagsOfInterest]:
+    objects: dict[str, ObjectsOfInterest] = {
         "ipv4-adresses": {
             "pattern": re.compile(r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b"),
             "tag": False,
@@ -110,7 +110,7 @@ def locate_objects_of_interrest(clear_text: str) -> list[TagsOfInterrest]:
             "tag": False,
         },
     }
-    results: list[TagsOfInterrest] = []
+    results: list[TagsOfInterest] = []
 
     for object_name in objects:
         # Sometimes the regex's will return a tuple of the result split up based on the groups in the regex. This will combine each of the, before reuniting them as a list
@@ -121,6 +121,6 @@ def locate_objects_of_interrest(clear_text: str) -> list[TagsOfInterrest]:
 
         if result != []:
             # Removing duplicates from result list by converting it to a set and then back to list
-            results.append({"name": object_name, "values": result})
+            results.append(TagsOfInterest(name=object_name, values=result))
 
     return results
