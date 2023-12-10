@@ -73,10 +73,10 @@ def gather_article_urls(profiles: list[Profile]) -> dict[str, list[str]]:
             else:
                 raise NotImplementedError
 
-        except Exception as e:
+        except Exception:
             article_urls[profile_name] = []
             logger.exception(
-                f'Problem with gathering URLs for the "{profile_name}" profile. Skipping for now. Error {e}'
+                f'Problem with gathering URLs for the "{profile_name}" profile. Skipping for now'
             )
 
     return article_urls
@@ -139,9 +139,9 @@ def scrape_using_profile(article_url_list: list[str], profile_name: str) -> None
         try:
             current_article = handle_single_article(url, current_profile)
             config_options.es_article_client.save_document(current_article)
-        except Exception as e:
-            logger.error(
-                f'Encountered problem with article with URL "{url}", skipping for now. Error: {e}'
+        except Exception:
+            logger.exception(
+                f'Encountered problem with article with URL "{url}", skipping for now'
             )
 
 

@@ -66,9 +66,9 @@ def profile_tester(profile_name: str, custom_url: str = "") -> None:
 
         try:
             articles.append(handle_single_article(url, current_profile))
-        except Exception as e:
-            logger.error(
-                f'Encountered problem with article with URL "{url}", skipping for now. Error: {e}'
+        except Exception:
+            logger.exception(
+                f'Encountered problem with article with URL "{url}", skipping for now'
             )
 
     article_string = ""
