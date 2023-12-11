@@ -1,11 +1,14 @@
 import logging
 
 from .articles import scrape_articles
+import typer
 
 
+app = typer.Typer()
 logger = logging.getLogger("osinter")
 
 
+@app.command()
 def main() -> None:
     for scraping_function in [scrape_articles]:
         try:
@@ -17,7 +20,3 @@ def main() -> None:
                 f'Critical error prevented running the "{scraping_function.__name__}". Error: {e}',
                 exc_info=True,
             )
-
-
-if __name__ == "__main__":
-    main()
