@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup, Tag
 from bs4.element import ResultSet
 from pydantic import AwareDatetime, BaseModel
 
-from modules.profiles import ArticleContent, ArticleMeta
+from modules.profiles import ArticleContent, ArticleMeta, ElementSelector
 
 # Used for matching the relevant information from LD+JSON
 json_patterns = {
@@ -75,32 +75,25 @@ def extract_article_content(
 def extract_meta_information(
     page_soup: BeautifulSoup, scraping_targets: ArticleMeta, site_url: str
 ) -> OGTags:
-    def extract_with_selector(selector: str) -> None | str:
-        if "meta" in selector:
-            tag_field = "content"
-        elif "time" in selector:
-            tag_field = "datetime"
-        else:
-            tag_field = None
-
+    def extract_with_selector(selector: str | ElementSelector) -> None | str:
         # Skip empty selectors, as some profiles rely on LD+JSON for some fields and therefore doesn't have CSS selectors for author and date
         if not selector:
             return None
 
         try:
-            tag = page_soup.select(selector)[0]
+            if isinstance(selector, str):
+                tag = page_soup.select(selector)[0]
+                return tag.text
+            elif isinstance(selector, ElementSelector):
+                tag = page_soup.select(selector.element)[0]
+                contents = tag.get(selector.content_field)
+
+                if isinstance(contents, str):
+                    return contents
+                else:
+                    return None
         except IndexError:
             return None
-
-        if tag_field:
-            tag_contents = tag.get(tag_field)
-        else:
-            tag_contents = tag.text
-
-        if isinstance(tag_contents, str):
-            return tag_contents
-
-        return None
 
     # Use ld+json to extract extra information not found in the meta OG tags like author and publish date
     def extract_json(pattern: Pattern[str]) -> str | None:
