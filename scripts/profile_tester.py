@@ -10,7 +10,11 @@ from rich.table import Table
 
 from modules.files import article_to_md
 from modules.profiles import get_profile, get_profiles, list_profiles
-from scripts.scraping.articles import gather_article_urls, handle_single_article
+from scripts.scraping.articles import (
+    gather_profile_urls,
+    gather_profiles_urls,
+    handle_single_article,
+)
 
 logger = logging.getLogger("osinter")
 
@@ -58,7 +62,7 @@ def profile_tester(profile_name: str, custom_url: str = "") -> None:
     if custom_url:
         article_url_collection = [custom_url]
     else:
-        article_url_collection = gather_article_urls([current_profile])[profile_name]
+        article_url_collection = gather_profile_urls(current_profile, 10)
 
     articles = []
     for url in article_url_collection:
@@ -122,7 +126,7 @@ def auto_test(
     console.print(MD("# Auto test commencing"))
     console.print(MD("# *Collecting article URLs*"))
 
-    article_url_collection = gather_article_urls(get_profiles())
+    article_url_collection = gather_profiles_urls(get_profiles())
 
     url_count_table = Table("Profile", "URL Count")
     for profile in sorted(article_url_collection):

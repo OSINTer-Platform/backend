@@ -36,43 +36,47 @@ class custom_md_converter(MarkdownConverter):  # type: ignore
         return cast(str, super().convert_a(el, text, convert_as_inline))
 
 
+def gather_profile_urls(
+    profile: Profile, max_url_count: int, news_paths: list[str] | None = None
+) -> list[str]:
+    profile_name = profile.source.profile_name
+    news_paths = news_paths if news_paths else profile.source.news_paths
+
+    logger.debug(f'Gathering URLs for the "{profile_name}" profile.')
+
+    if profile.source.retrieval_method == "rss":
+        logger.debug("Using RSS for gathering links.\n")
+        return get_article_urls_from_rss(news_paths, max_url_count)
+
+    elif profile.source.retrieval_method == "scraping":
+        logger.debug("Using scraping for gathering links.\n")
+        return scrape_article_urls(profile, max_url_count, news_paths=news_paths)
+
+    elif profile.source.retrieval_method == "dynamic":
+        logger.debug("Using dynamic scraping for gathering links.\n")
+
+        article_sources = [scrape_page_dynamic(url, []) for url in news_paths]
+        frontpage_soups = [bs(source, "html.parser") for source in article_sources]
+
+        return scrape_article_urls(
+            profile,
+            max_url_count,
+            web_soups=frontpage_soups,
+        )
+    else:
+        raise NotImplementedError
+
+
 # Function for gathering list of URLs for articles from newssite
-def gather_article_urls(profiles: list[Profile]) -> dict[str, list[str]]:
+def gather_profiles_urls(
+    profiles: list[Profile], max_url_count: int = 10
+) -> dict[str, list[str]]:
     article_urls: dict[str, list[str]] = {}
 
     for profile in profiles:
         profile_name = profile.source.profile_name
-
-        logger.debug(f'Gathering URLs for the "{profile_name}" profile.')
-
         try:
-            if profile.source.retrieval_method == "rss":
-                logger.debug("Using RSS for gathering links.\n")
-                article_urls[profile_name] = get_article_urls_from_rss(
-                    profile.source.news_paths
-                )
-
-            elif profile.source.retrieval_method == "scraping":
-                logger.debug("Using scraping for gathering links.\n")
-                article_urls[profile_name] = scrape_article_urls(profile)
-
-            elif profile.source.retrieval_method == "dynamic":
-                logger.debug("Using dynamic scraping for gathering links.\n")
-
-                article_sources = [
-                    scrape_page_dynamic(url, []) for url in profile.source.news_paths
-                ]
-                frontpage_soups = [
-                    bs(source, "html.parser") for source in article_sources
-                ]
-
-                article_urls[profile_name] = scrape_article_urls(
-                    profile,
-                    web_soups=frontpage_soups,
-                )
-            else:
-                raise NotImplementedError
-
+            article_urls[profile_name] = gather_profile_urls(profile, max_url_count)
         except Exception:
             article_urls[profile_name] = []
             logger.exception(
@@ -147,7 +151,7 @@ def scrape_using_profile(article_url_list: list[str], profile_name: str) -> None
 
 def scrape_articles() -> None:
     logger.debug("Scraping articles from frontpages and RSS feeds")
-    article_url_collection = gather_article_urls(get_profiles())
+    article_url_collection = gather_profiles_urls(get_profiles())
 
     logger.debug(
         "Removing those articles that have already been stored in the database"

@@ -78,8 +78,9 @@ def scrape_web_soup(url: str) -> BeautifulSoup | None:
 
 def scrape_article_urls(
     profile: Profile,
+    max_url_count: int,
     web_soups: list[BeautifulSoup] | None = None,
-    max_url_count: int = 10,
+    news_paths: list[str] | None = None,
 ) -> list[str]:
     def extract_links(soup: BeautifulSoup) -> list[str]:
         # Getting a soup for the website
@@ -120,7 +121,8 @@ def scrape_article_urls(
         return [cat_url(profile.source.address, url) for url in raw_article_urls]
 
     if not web_soups:
-        scraped_soups = [scrape_web_soup(url) for url in profile.source.news_paths]
+        news_paths = news_paths if news_paths else profile.source.news_paths
+        scraped_soups = [scrape_web_soup(url) for url in news_paths]
 
         if None in scraped_soups:
             raise Exception(
@@ -136,7 +138,7 @@ def scrape_article_urls(
 # Function for scraping a list of recent articles using the url to a RSS feed
 def get_article_urls_from_rss(
     rss_urls: list[str],
-    max_url_count: int = 10,
+    max_url_count: int,
 ) -> list[str]:
     def parse_feed(url: str) -> list[Any]:
         # Parse the whole RSS feed
