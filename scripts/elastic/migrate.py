@@ -71,7 +71,8 @@ def add_timezone() -> None:
 
     logger.debug(f"Converted {len(converted_articles)} articles. Uploading changes")
 
-    config_options.es_article_client.save_documents(converted_articles)
+    saved = config_options.es_article_client.update_documents(converted_articles)
+    logger.debug(f"Saved {saved} articles")
 
 
 @app.command()
@@ -89,7 +90,8 @@ def regenerate_tags() -> None:
         logger.debug(f"Converted number {i}")
 
     logger.debug("Saving articles")
-    config_options.es_article_client.save_documents(articles)
+    saved = config_options.es_article_client.update_documents(articles)
+    logger.debug(f"Saved {saved} articles")
 
 
 @app.command()
@@ -167,7 +169,9 @@ def update_ids() -> None:
             articles_to_save.append(article)
 
     logger.debug(f"Saving {len(articles_to_save)} new articles")
-    config_options.es_article_client.save_documents(articles_to_save)
+    saved = config_options.es_article_client.save_documents(articles_to_save)
+    logger.debug(f"Saved {saved} articles")
 
     logger.debug(f"Removing {len(articles_to_remove)} old articles")
-    config_options.es_article_client.delete_document(articles_to_remove)
+    removed = config_options.es_article_client.delete_document(articles_to_remove)
+    logger.debug(f"Removed {removed} articles")
