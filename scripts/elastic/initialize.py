@@ -4,10 +4,15 @@ from typing import Any
 from dotenv import set_key
 
 from elasticsearch import BadRequestError
-from elasticsearch.client import IndicesClient, IngestClient, MlClient
+from elasticsearch.client import (
+    IndicesClient,
+    IngestClient,
+    MlClient,
+    SearchApplicationClient,
+)
 import typer
 
-from modules.elastic import ES_INDEX_CONFIGS
+from modules.elastic import ES_INDEX_CONFIGS, ES_SEARCH_APPLICATIONS
 
 from .utils import get_user_yes_no
 from .. import config_options
@@ -159,4 +164,17 @@ def init_elser(model_id: str = ".elser_model_2", current: bool = True) -> None:
         task_id,
         "batches",
         lambda status: f"Creating batch nr {status['batches']} totalling {status['updated']} updated articles and {status['created']} created articles out of {status['total']} total articles",
+    )
+
+
+@app.command()
+def init_search_apps(article_app_name: str = "osinter-articles") -> None:
+    es_search_app_client = SearchApplicationClient(config_options.es_conn)
+
+    es_search_app_client.put(
+        name=article_app_name,
+        search_application={
+            "indices": [config_options.ELASTICSEARCH_ARTICLE_INDEX],
+            "template": ES_SEARCH_APPLICATIONS["ARTICLES"]["template"],
+        },
     )
