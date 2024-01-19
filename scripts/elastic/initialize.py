@@ -55,17 +55,11 @@ def init_db() -> None:
 
 
 @app.command()
-def init_elser(model_id: str = ".elser_model_1") -> None:
-    if (
-        config_options.ELASTICSEARCH_ELSER_PIPELINE
-        or config_options.ELASTICSEARCH_ELSER_ID
-    ):
-        raise Exception(
-            "It seems based on your .env file that you have already set up ELSER intergration with OSINTer"
-        )
-
+def init_elser(model_id: str = ".elser_model_2", current: bool = True) -> None:
     FIELDS_TO_TOKENIZE = ["title", "description", "content"]
-    ELSER_INDEX_NAME = config_options.ELASTICSEARCH_ARTICLE_INDEX + "_elser"
+    ELSER_INDEX_NAME = config_options.ELASTICSEARCH_ARTICLE_INDEX + (
+        "" if current else "_elser"
+    )
     ELSER_PIPELINE_NAME = "add-elser"
 
     es_ml_client = MlClient(config_options.es_conn)
