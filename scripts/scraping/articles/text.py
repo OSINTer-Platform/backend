@@ -23,41 +23,33 @@ def tokenize_text(clean_clear_text: str) -> list[str]:
     clean_clear_text = re.sub(
         r'\s(?:,|\.|"|\'|\/|\\|:|-)+|(?:,|\.|"|\'|\/|\\|:|-)+\s', " ", clean_clear_text
     )
-    clean_clear_text = re.sub(r"(?:\{.*\})|(?:\(\d{1,3}\))", "", clean_clear_text)
+    clean_clear_text = re.sub(r"(?:\{.*\})", "", clean_clear_text)
+    clean_clear_text = re.sub(r"“|\"|\(|\)", " ", clean_clear_text)
     # Remove all "words" where the word doesn't have any letters in it. This will remove "-", "3432" (words consisting purely of letters) and double spaces.
     clean_clear_text = re.sub(r"\s[^a-zA-Z]*\s", " ", clean_clear_text)
 
     # Converting the cleaned cleartext to a list
-    clear_text_list = clean_clear_text.split(" ")
+    clear_text_list = clean_clear_text.lower().split(" ")
 
     return clear_text_list
 
 
-# Function for taking in a list of words, and generating tags based on that. Does this by finding the words that doesn't appear in a wordlist (which means they probably have some technical relevans) and then sort them by how often they're used. The input should be cleaned with cleanText
 def generate_tags(clear_text_list: list[str]) -> list[str]:
-    # List containing words that doesn't exist in the wordlist
-    uncommon_words = list()
+    """clear_text_list needs to be lowercase"""
+    common_words = set(line.strip() for line in open("./tools/wordlist.txt", "r"))
 
-    # Generating set of all words in the wordlist
-    wordlist = set(line.strip() for line in open("./tools/wordlist.txt", "r"))
+    word_counts = Counter(clear_text_list)
 
-    # Find all the words that doesn't exist in the normal english dictionary (since those are the names and special words that we want to use as tags)
-    for word in clear_text_list:
-        if word.lower() not in wordlist and word != "":
-            uncommon_words.append(word)
+    tags: list[str] = []
+    for word, count in word_counts.most_common():
+        if count < 3:
+            break
+        if word and word not in common_words:
+            tags.append(word)
+        if len(tags) > 9:
+            break
 
-    # Take the newly found words, sort by them by frequency and take the 10 most used
-    words_sorted_by_freq: list[tuple[str, int]] = [
-        word for word in Counter(uncommon_words).most_common(10)
-    ]
-
-    # only use those who have 3 mentions or more
-    tag_list = list()
-    for word_count in words_sorted_by_freq:
-        if word_count[1] > 2:
-            tag_list.append(word_count[0].capitalize())
-
-    return tag_list
+    return tags
 
 
 class ObjectsOfInterest(TypedDict):

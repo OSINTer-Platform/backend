@@ -2,6 +2,8 @@ import logging
 from datetime import datetime, timezone
 from hashlib import md5
 from typing import Any
+import multiprocessing
+from tqdm import tqdm
 
 from pydantic import Field, ValidationError
 
@@ -75,6 +77,12 @@ def add_timezone() -> None:
     logger.debug(f"Saved {saved} articles")
 
 
+def article_tag_regen(article: FullArticle) -> FullArticle:
+    article.tags.automatic = generate_tags(tokenize_text(article.content))
+    article.tags.interesting = locate_objects_of_interest(article.content)
+    return article
+
+
 @app.command()
 def regenerate_tags() -> None:
     logger.debug("Downloading articles")
@@ -82,15 +90,13 @@ def regenerate_tags() -> None:
 
     logger.debug(f"Converting {len(articles)} articles")
 
-    for i, article in enumerate(articles):
-        article.tags.automatic = generate_tags(tokenize_text(article.content))
-
-        article.tags.interesting = locate_objects_of_interest(article.content)
-
-        logger.debug(f"Converted number {i}")
+    with multiprocessing.Pool(multiprocessing.cpu_count() - 2) as pool:
+        new_articles = list(
+            tqdm(pool.imap_unordered(article_tag_regen, articles), total=len(articles))
+        )
 
     logger.debug("Saving articles")
-    saved = config_options.es_article_client.update_documents(articles)
+    saved = config_options.es_article_client.update_documents(new_articles, ["tags"])
     logger.debug(f"Saved {saved} articles")
 
 

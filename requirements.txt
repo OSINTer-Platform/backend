@@ -27,3 +27,4 @@ pydantic
 typer
 Rich
 python-dotenv
+tqdm
