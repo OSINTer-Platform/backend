@@ -112,7 +112,7 @@ def locate_objects_of_interest(clear_text: str) -> list[TagsOfInterest]:
         ]
 
         if result != []:
-            # Removing duplicates from result list by converting it to a set and then back to list
-            results.append(TagsOfInterest(name=object_name, values=result))
+            # Use list->set->list for duplicate removal
+            results.append(TagsOfInterest(name=object_name, values=list(set(result))))
 
     return results
