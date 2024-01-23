@@ -132,7 +132,9 @@ def scrape_article_urls(
         web_soups = cast(list[BeautifulSoup], scraped_soups)
 
     links = [extract_links(soup) for soup in web_soups]
-    return [item for sublist in links for item in sublist]
+
+    # Flatten and remove duplicates
+    return list({item for sublist in links for item in sublist})
 
 
 # Function for scraping a list of recent articles using the url to a RSS feed
