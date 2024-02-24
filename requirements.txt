@@ -28,3 +28,4 @@ typer
 Rich
 python-dotenv
 tqdm
+CouchDB
