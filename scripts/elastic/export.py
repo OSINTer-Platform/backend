@@ -118,7 +118,7 @@ def articles_to_md(destination: str) -> None:
                 article_file.write(article_md)
 
 
-current_day = datetime.today().strftime("%Y-%m-%d")
+current_day = datetime.today().strftime("%Y-%m-%d-%H:%M:%S")
 
 
 @app.command()

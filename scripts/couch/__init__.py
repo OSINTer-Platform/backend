@@ -10,7 +10,7 @@ from couchdb import Database, Server
 app = typer.Typer(no_args_is_help=True)
 logger = logging.getLogger("osinter")
 
-current_day = datetime.today().strftime("%Y-%m-%d")
+current_day = datetime.today().strftime("%Y-%m-%d-%H:%M:%S")
 
 
 def getDB() -> Database:
