@@ -18,14 +18,18 @@ def getDB() -> Database:
 
 
 @app.command()
-def backup(backup_file_name: str = f"./couch-backup-{current_day}.gz") -> None:
+def backup(
+    backup_path: str = "./", backup_file_name: str = f"couch-backup-{current_day}.gz"
+) -> None:
     db = getDB()
+    backup_full_path = backup_path + backup_file_name
+
     docs: list[dict[str, Any]] = []
 
     logger.debug("Downloading documents")
     for id in db:
         docs.append(dict(db[id]))
 
-    logger.debug(f'Downloaded {len(docs)}, writing to disk at "{backup_file_name}"')
-    with gzip.open(backup_file_name, "wt", encoding="utf-8") as f:
+    logger.debug(f'Downloaded {len(docs)}, writing to disk at "{backup_full_path}"')
+    with gzip.open(backup_full_path, "wt", encoding="utf-8") as f:
         json.dump(docs, f)

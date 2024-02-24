@@ -1,12 +1,15 @@
+import gzip
 import json
 import logging
 import os
 from typing import Any
+from datetime import datetime
 
 import typer
 
 from modules.elastic import (
     ArticleSearchQuery,
+    return_article_db_conn,
 )
 from modules.files import article_to_md
 from modules.objects import FullArticle
@@ -113,3 +116,41 @@ def articles_to_md(destination: str) -> None:
                 os.path.join(folder_path, profile, f"{article.id}.md"), "w"
             ) as article_file:
                 article_file.write(article_md)
+
+
+current_day = datetime.today().strftime("%Y-%m-%d")
+
+
+@app.command()
+def backup(
+    indicies: list[str] = [config_options.ELASTICSEARCH_ARTICLE_INDEX],
+    backup_path: str = "./",
+    backup_file_name: str = f"elastic-backup-{current_day}.gz",
+):
+    backup_full_path = backup_path + backup_file_name
+    indicies_content: dict[str, list[dict[str, Any]]] = {}
+
+    for index_name in indicies:
+        logger.debug(f'Downloading articles for "{index_name}"')
+        article_client = return_article_db_conn(
+            config_options.es_conn,
+            index_name,
+            config_options.ELASTICSEARCH_ELSER_PIPELINE,
+            config_options.ELASTICSEARCH_ELSER_ID,
+        )
+
+        articles = article_client.query_all_documents()
+
+        logger.debug(
+            f'Downloaded {len(articles)} articles for "{index_name}". Converting'
+        )
+
+        article_dicts = [
+            article.model_dump(exclude={"highlights"}, mode="json")
+            for article in articles
+        ]
+        indicies_content[index_name] = article_dicts
+
+    logger.debug(f'Writing backup to disk at "{backup_full_path}"')
+    with gzip.open(backup_full_path, "wt", encoding="utf-8") as f:
+        json.dump(indicies_content, f)
