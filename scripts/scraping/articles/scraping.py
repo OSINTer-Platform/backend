@@ -160,7 +160,7 @@ def scrape_page_dynamic(
     # Setting the options for running the browser driver headlessly so it doesn't pop up when running the script
     driver_options = Options()
     if headless:
-        driver_options.add_argument("-headless")  # type: ignore
+        driver_options.add_argument("-headless")
 
     # Setup the webdriver with options
     with webdriver.Firefox(
