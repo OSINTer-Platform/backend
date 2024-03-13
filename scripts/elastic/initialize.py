@@ -60,11 +60,12 @@ def init_db() -> None:
 
 
 @app.command()
-def init_elser(model_id: str = ".elser_model_2", current: bool = True) -> None:
+def init_elser(
+    model_id: str = config_options.ELASTICSEARCH_ELSER_ID or ".elser_model_2",
+    new_index_name: str = "",
+) -> None:
     FIELDS_TO_TOKENIZE = ["title", "description", "content"]
-    ELSER_INDEX_NAME = config_options.ELASTICSEARCH_ARTICLE_INDEX + (
-        "" if current else "_elser"
-    )
+    ELSER_INDEX_NAME = new_index_name or config_options.ELASTICSEARCH_ARTICLE_INDEX
     ELSER_PIPELINE_NAME = "add-elser"
 
     es_ml_client = MlClient(config_options.es_conn)
