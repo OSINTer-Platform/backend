@@ -133,7 +133,7 @@ def backup(
     indicies: list[str] = [config_options.ELASTICSEARCH_ARTICLE_INDEX],
     backup_path: str = "./",
     backup_file_name: str = f"elastic-backup-{current_day}.gz",
-):
+) -> None:
     backup_full_path = backup_path + backup_file_name
     indicies_content: dict[str, list[dict[str, Any]]] = {}
 
