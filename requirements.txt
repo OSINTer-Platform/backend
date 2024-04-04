@@ -29,3 +29,4 @@ Rich
 python-dotenv
 tqdm
 CouchDB
+iocextract

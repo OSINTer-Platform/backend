@@ -1,9 +1,14 @@
 from collections import Counter
 import re
-from typing import TypedDict
+from typing import Callable, Iterator
 import unicodedata
+import iocextract
 
 from modules.objects import TagsOfInterest
+
+dashes = re.compile(
+    "[\u002D\u058A\u05BE\u2010\u2011\u2012\u2013\u2014\u2015\u2E3A\u2E3B\uFE58\uFE63\uFF0D]"
+)
 
 
 # Function for taking in text from article (or basically any source) and outputting a list of words cleaned for punctuation, sole numbers, double spaces and other things so that it can be used for text analyssis
@@ -12,6 +17,8 @@ def clean_text(clear_text: str) -> str:
     clean_clear_text = unicodedata.normalize("NFKD", clear_text)
     # Remove line endings
     clean_clear_text = re.sub(r"\n", " ", clean_clear_text)
+
+    clean_clear_text = dashes.sub("-", clean_clear_text)
 
     return clean_clear_text
 
@@ -52,67 +59,45 @@ def generate_tags(clear_text_list: list[str]) -> list[str]:
     return tags
 
 
-class ObjectsOfInterest(TypedDict):
-    pattern: re.Pattern[str]
-    tag: bool
+external_identifiers: dict[str, Callable[[str], Iterator[str]]] = {
+    "ipv4-adresses": lambda text: iocextract.extract_ipv4s(text, refang=True),
+    "ipv6-adresses": lambda text: iocextract.extract_ipv6s(text),
+    "email-adresses": lambda text: iocextract.extract_emails(text, refang=True),
+    "urls": lambda text: iocextract.extract_urls(text, refang=True),
+    "MD5-hash": lambda text: iocextract.extract_md5_hashes(text),
+    "SHA1-hash": lambda text: iocextract.extract_sha1_hashes(text),
+    "SHA256-hash": lambda text: iocextract.extract_sha256_hashes(text),
+    "SHA512-hash": lambda text: iocextract.extract_sha512_hashes(text),
+}
+
+internal_identifiers: dict[str, re.Pattern[str]] = {
+    "CVE's": re.compile(r"[Cc][Vv][Ee]-\d{4}-\d{4,7}"),
+    "MITRE IDs": re.compile(r"(?:[TMSGO]|TA)\d{4}\.\d{3}"),
+}
 
 
 # Function for locating interesting bits and pieces in an article like ip adresses and emails
 def locate_objects_of_interest(clear_text: str) -> list[TagsOfInterest]:
-    objects: dict[str, ObjectsOfInterest] = {
-        "ipv4-adresses": {
-            "pattern": re.compile(r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b"),
-            "tag": False,
-        },
-        "ipv6-adresses": {
-            "pattern": re.compile(
-                r"\b(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))\b"
-            ),
-            "tag": False,
-        },
-        "email-adresses": {
-            "pattern": re.compile(
-                r"\b[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+\b"
-            ),
-            "tag": False,
-        },
-        "urls": {
-            "pattern": re.compile(r'\b(?:[a-zA-Z]+:\/{1,3}|www\.)[^"\s]+'),
-            "tag": False,
-        },
-        "CVE's": {"pattern": re.compile(r"CVE-\d{4}-\d{4,7}"), "tag": True},
-        "MITRE IDs": {
-            "pattern": re.compile(r"(?:[TMSGO]|TA)\d{4}\.\d{3}"),
-            "tag": True,
-        },
-        "MD5-hash": {
-            "pattern": re.compile(r"\b(?:[a-f0-9]{32}|[A-F0-9]{32})\b"),
-            "tag": False,
-        },
-        "SHA1-hash": {
-            "pattern": re.compile(r"\b(?:[a-f0-9]{40}|[A-F0-9]{40})\b"),
-            "tag": False,
-        },
-        "SHA256-hash": {
-            "pattern": re.compile(r"\b(?:[a-f0-9]{64}|[A-F0-9]{64})\b"),
-            "tag": False,
-        },
-        "SHA512-hash": {
-            "pattern": re.compile(r"\b(?:[a-f0-9]{128}|[A-F0-9]{128})\b"),
-            "tag": False,
-        },
-    }
     results: list[TagsOfInterest] = []
 
-    for object_name in objects:
+    for object_name in internal_identifiers:
         # Sometimes the regex's will return a tuple of the result split up based on the groups in the regex. This will combine each of the, before reuniting them as a list
         result = [
             result if not isinstance(result, tuple) else "".join(result)
-            for result in objects[object_name]["pattern"].findall(clear_text)
+            for result in internal_identifiers[object_name].findall(clear_text)
         ]
 
-        if result != []:
+        result = [r.upper() for r in result]
+
+        if result:
             # Use list->set->list for duplicate removal
             results.append(TagsOfInterest(name=object_name, values=list(set(result))))
+
+    for object_name, identifier in external_identifiers.items():
+        # print(list(identifier(clear_text)), object_name, len(clear_text))
+        result = list(set(identifier(clear_text)))
+
+        if result:
+            results.append(TagsOfInterest(name=object_name, values=result))
 
     return results
