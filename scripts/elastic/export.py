@@ -43,7 +43,9 @@ def articles_to_json(export_filename: str) -> None:
 
 
 @app.command()
-def json_to_articles(import_filename: str, bypass_ingest_pipeline: bool = True) -> None:
+def json_to_articles(
+    import_filename: str, bypass_ingest_pipeline: bool = True, batch_size: int = 1000
+) -> None:
     logger.debug("Loading articles from file")
 
     with open(import_filename, "r") as import_file:
@@ -75,7 +77,10 @@ def json_to_articles(import_filename: str, bypass_ingest_pipeline: bool = True) 
 
     saved_count: int = 0
     for i, article_list in enumerate(
-        [new_articles[i : i + 1000] for i in range(0, len(new_articles), 1000)]
+        [
+            new_articles[i : i + batch_size]
+            for i in range(0, len(new_articles), batch_size)
+        ]
     ):
         logger.debug(f"Saving batch nr {i}")
         saved_count += config_options.es_article_client.save_documents(
