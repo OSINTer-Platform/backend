@@ -30,3 +30,5 @@ python-dotenv
 tqdm
 CouchDB
 iocextract
+python-frontmatter
+openai
