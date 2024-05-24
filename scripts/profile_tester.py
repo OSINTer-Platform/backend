@@ -23,7 +23,7 @@ console = Console()
 
 
 def get_profile_list() -> list[str]:
-    profile_list: list[str] = list_profiles()
+    profile_list: list[str] = list_profiles(complete_file_name=True, include_disabled=True)
     profile_list.sort()
 
     return profile_list
@@ -87,7 +87,7 @@ def profile_tester(profile_name: str, custom_url: str = "") -> None:
 
 @app.command()
 def verify_profiles() -> None:
-    profiles = get_profiles()
+    profiles = get_profiles(include_disabled=True)
 
     injection_lists = [profile.scraping.js_injections for profile in profiles]
     injections = [injection for sublist in injection_lists for injection in sublist]
