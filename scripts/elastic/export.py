@@ -84,7 +84,7 @@ def json_to_articles(
     ):
         logger.debug(f"Saving batch nr {i}")
         saved_count += config_options.es_article_client.save_documents(
-            article_list, bypass_ingest_pipeline
+            article_list, not bypass_ingest_pipeline
         )
 
     logger.info(f"Saved {saved_count} new articles")
