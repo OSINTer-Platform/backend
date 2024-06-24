@@ -1,4 +1,5 @@
 import gzip
+import itertools
 import json
 import logging
 import os
@@ -51,20 +52,14 @@ def json_to_articles(
     with open(import_filename, "r") as import_file:
         local_articles: list[dict[str, Any]] = json.load(import_file)
 
-    logger.debug(
-        "Downloading list of articles from remote DB for removal of already stored articles"
-    )
-    remote_article_urls: list[str] = [
-        article_url
-        for article in config_options.es_article_client.query_documents(
-            ArticleSearchQuery(limit=0), False
-        )
-        if (article_url := getattr(article, "url", None))
+    logger.debug("Removing already present articles")
+
+    local_article_urls = [
+        article["url"] for article in local_articles if "url" in article
     ]
-
-    logger.debug(f"Downloaded {len(remote_article_urls)} articles")
-
-    logger.debug("Removing articles that's already stored in DB")
+    remote_article_urls = config_options.es_article_client.filter_document_list(
+        local_article_urls
+    )
 
     new_articles: list[FullArticle] = []
 
