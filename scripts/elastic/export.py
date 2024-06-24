@@ -44,7 +44,7 @@ def articles_to_json(export_filename: str) -> None:
 
 @app.command()
 def json_to_articles(
-    import_filename: str, bypass_ingest_pipeline: bool = True, batch_size: int = 1000
+    import_filename: str, bypass_ingest_pipeline: bool = False, batch_size: int = 1000
 ) -> None:
     logger.debug("Loading articles from file")
 
