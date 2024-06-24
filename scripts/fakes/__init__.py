@@ -73,14 +73,14 @@ def load_fakes(path: str) -> list[list[FakeFile]]:
         f = frontmatter.load(file_path)
         meta = cast(dict[str, str], f.metadata)
         return {
-                "id": meta["id"],
-                "title": meta["title"],
-                "description": meta["description"],
-                "source": meta["source"],
-                "image": meta["image"] if "image" in meta else None,
-                "content": f.content,
-                "file_path": file_path,
-            }
+            "id": meta["id"],
+            "title": meta["title"],
+            "description": meta["description"],
+            "source": meta["source"],
+            "image": meta["image"] if "image" in meta else None,
+            "content": f.content,
+            "file_path": file_path,
+        }
 
     if path.endswith(".md"):
         return [[load(path)]]
