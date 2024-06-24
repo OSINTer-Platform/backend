@@ -1,29 +1,11 @@
-# For reading the rss feeds
 feedparser
-
-# For scraping static sites
 requests
-
-# For parsing html
 beautifulsoup4
-
-# For dynamicaly scraping pages
 selenium
-
-# For converting from html to markdown
 markdownify
-
-# For parsing dates
 dateparser
-
-# For connecting with the elasticsearch backend
 elasticsearch
-
-# For scraping tweets from twitter
-searchtweets-v2
-
 pydantic
-
 typer
 Rich
 python-dotenv
@@ -32,3 +14,4 @@ CouchDB
 iocextract
 python-frontmatter
 openai
+transformers
