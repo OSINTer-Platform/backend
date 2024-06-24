@@ -62,17 +62,12 @@ def init_db() -> None:
 @app.command()
 def init_elser(
     model_id: str = config_options.ELASTICSEARCH_ELSER_ID or ".elser_model_2",
-    new_index_name: str = "",
+    pipeline_name: str = "add-elser",
 ) -> None:
-    FIELDS_TO_TOKENIZE = ["title", "description", "content"]
-    ELSER_INDEX_NAME = new_index_name or config_options.ELASTICSEARCH_ARTICLE_INDEX
-    ELSER_PIPELINE_NAME = "add-elser"
-
     es_ml_client = MlClient(config_options.es_conn)
     es_ingest_client = IngestClient(config_options.es_conn)
-    es_index_client = IndicesClient(config_options.es_conn)
 
-    logger.info("Setting up pipeline and new index for use with ELSER")
+    logger.info("Verifying a running ELSER instance and setting up pipeline")
     logger.debug(f'Checking for running model by id "{model_id}"')
 
     for trained_model in es_ml_client.get_trained_models_stats()["trained_model_stats"]:
@@ -88,84 +83,71 @@ def init_elser(
     logger.debug("Model found")
 
     logger.debug("Creating ingest pipeline for adding elser")
-    processors: list[Mapping[str, Any]] = []
-
-    for field_name in FIELDS_TO_TOKENIZE:
-        processors.append(
-            {
-                "remove": {
-                    "field": f"elastic_ml.{field_name}_tokens",
-                    "ignore_missing": True,
-                }
+    processors: list[Mapping[str, Any]] = [
+        {
+            "foreach": {
+                "field": "embeddings.content_chunks",
+                "processor": {
+                    "remove": {"field": "_ingest._value.elser", "ignore_missing": True}
+                },
+                "if": 'ctx?.embeddings?.containsKey("content_chunks")',
+                "description": "Remove empty fields",
             }
-        )
+        },
+        {
+            "foreach": {
+                "field": "embeddings.content_chunks",
+                "processor": {
+                    "inference": {
+                        "model_id": model_id,
+                        "target_field": "_ingest._value.elser",
+                        "field_map": {"_ingest._value.text": "text_field"},
+                        "inference_config": {
+                            "text_expansion": {"results_field": "tokens"}
+                        },
+                        "description": "Runs elser",
+                    }
+                },
+                "if": 'ctx?.embeddings?.containsKey("content_chunks")',
+            }
+        },
+    ]
 
+    embedding_fields = ["title", "description"]
+
+    processors.append(
+        {
+            "remove": {
+                "field": [
+                    f"embeddings.{field_name}.elser" for field_name in embedding_fields
+                ],
+                "ignore_missing": True,
+            }
+        }
+    )
+
+    for field_name in embedding_fields:
         processors.append(
             {
                 "inference": {
                     "model_id": model_id,
-                    "target_field": "elastic_ml",
+                    "target_field": f"embeddings.{field_name}.elser",
                     "field_map": {field_name: "text_field"},
-                    "inference_config": {
-                        "text_expansion": {"results_field": f"{field_name}_tokens"}
-                    },
+                    "inference_config": {"text_expansion": {"results_field": "tokens"}},
                 }
             }
         )
 
     es_ingest_client.put_pipeline(
-        id=ELSER_PIPELINE_NAME,
+        id=pipeline_name,
         processors=processors,
     )
-
-    logger.debug("Creating new index to fit tokens")
-
-    ARTICLE_INDEX = ES_INDEX_CONFIGS["ELASTICSEARCH_ARTICLE_INDEX"]
-
-    ARTICLE_INDEX["properties"]["elastic_ml"] = {
-        "type": "object",
-        "properties": {
-            f"{field_name}_tokens": {"type": "rank_features"}
-            for field_name in FIELDS_TO_TOKENIZE
-        },
-    }
-
-    try:
-        es_index_client.create(
-            index=ELSER_INDEX_NAME,
-            mappings=ARTICLE_INDEX,
-        )
-    except BadRequestError as e:
-        if e.status_code != 400 or e.error != "resource_already_exists_exception":
-            raise e
-        else:
-            es_index_client.put_mapping(
-                index=ELSER_INDEX_NAME, properties=ARTICLE_INDEX["properties"]
-            )
 
     logger.warning(
         "Writting details to env file, REMEMBER TO COPY NEW ENV DETAILS TO API DEPLOYMENT"
     )
-    set_key(".env", "ARTICLE_INDEX", ELSER_INDEX_NAME)
-    set_key(".env", "ELSER_PIPELINE", ELSER_PIPELINE_NAME)
+    set_key(".env", "ELSER_PIPELINE", pipeline_name)
     set_key(".env", "ELSER_ID", model_id)
-
-    logger.info("Starting to reindinx old articles into new index using ELSER")
-
-    task_id = config_options.es_conn.reindex(
-        source={
-            "index": config_options.ELASTICSEARCH_ARTICLE_INDEX,
-            "size": 50,
-        },
-        dest={"index": ELSER_INDEX_NAME, "pipeline": ELSER_PIPELINE_NAME},
-        wait_for_completion=False,
-    )["task"]
-
-    config_options.es_article_client.await_task(
-        task_id,
-        "batches",
-        lambda status: f"Creating batch nr {status['batches']} totalling {status['updated']} updated articles and {status['created']} created articles out of {status['total']} total articles",
-    )
 
 
 @app.command()
