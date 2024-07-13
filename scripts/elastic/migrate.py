@@ -129,7 +129,7 @@ def clean_up() -> None:
 
     logger.info("Downloading all articles")
     search_q = ArticleSearchQuery(limit=0)
-    articles, invalid_docs = config_options.es_article_client.query_documents(
+    articles, invalid_docs, _ = config_options.es_article_client.query_documents(
         search_q, True
     )
 

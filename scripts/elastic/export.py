@@ -76,8 +76,8 @@ def json_to_articles(
             new_articles, not bypass_ingest_pipeline
         )
     else:
-        for article in new_articles:
-            config_options.es_article_client.save_document(article)
+        for new_article in new_articles:
+            config_options.es_article_client.save_document(new_article)
             saved_count += 1
 
     logger.info(f"Saved {saved_count} new articles")
