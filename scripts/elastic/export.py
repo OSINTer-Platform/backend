@@ -57,7 +57,7 @@ def json_to_articles(
     local_article_urls = [
         article["url"] for article in local_articles if "url" in article
     ]
-    remote_article_urls = config_options.es_article_client.filter_document_list(
+    remote_article_urls = config_options.es_article_client.exists_in_db(
         local_article_urls
     )
 
