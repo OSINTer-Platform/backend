@@ -131,7 +131,9 @@ def extract_meta_information(
 
     title = extract_with_selector(scraping_targets.title)
     description = extract_with_selector(scraping_targets.description)
-    author = extract_with_selector(scraping_targets.author) or extract_json(json_patterns["author"])
+    author = extract_with_selector(scraping_targets.author) or extract_json(
+        json_patterns["author"]
+    )
     author = author.strip() if author else author
 
     if not title or not description:

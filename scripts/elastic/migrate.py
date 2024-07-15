@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, timezone
 from hashlib import md5
-from typing import Any
+from typing import Any, cast
 import multiprocessing
 from tqdm import tqdm
 
@@ -10,10 +10,7 @@ from pydantic import Field, ValidationError
 import typer
 from rich import print_json
 
-from modules.elastic import (
-    ArticleSearchQuery,
-    ElasticDB,
-)
+from modules.elastic import ArticleSearchQuery, ElasticDB, return_article_db_conn
 from modules.objects import BaseArticle, FullArticle, PartialArticle
 
 from .utils import get_user_yes_no
@@ -129,7 +126,7 @@ def clean_up() -> None:
 
     logger.info("Downloading all articles")
     search_q = ArticleSearchQuery(limit=0)
-    articles, invalid_docs = config_options.es_article_client.query_documents(
+    articles, invalid_docs, _ = config_options.es_article_client.query_documents(
         search_q, True
     )
 
@@ -181,3 +178,43 @@ def update_ids() -> None:
     logger.debug(f"Removing {len(articles_to_remove)} old articles")
     removed = config_options.es_article_client.delete_document(articles_to_remove)
     logger.debug(f"Removed {removed} articles")
+
+
+@app.command()
+def update_temporary(from_index: str, to_index: str) -> None:
+    TEMPORARY_FIELDS = ["ml", "tags", "summary", "read_times"]
+
+    from_client = return_article_db_conn(config_options.es_conn, from_index, None, None)
+    to_client = return_article_db_conn(config_options.es_conn, to_index, None, None)
+
+    logger.debug(f'Downloading articles from "{from_index}"')
+    from_articles = from_client.query_documents(
+        ArticleSearchQuery(limit=0), TEMPORARY_FIELDS + ["url"]
+    )[0]
+
+    logger.debug(f"Found {len(from_articles)} articles")
+
+    logger.debug(f'Removing articles which are not present in "{to_index}"')
+    urls_not_present = to_client.filter_document_list(
+        [cast(str, article.url) for article in from_articles]
+    )
+
+    if urls_not_present:
+        logger.debug(f'{len(urls_not_present)} articles is not present in "{to_index}"')
+        print("These were not present:\n", urls_not_present)
+    else:
+        logger.debug(f'All articles in "{from_index}" are present in "{to_index}"')
+
+    to_articles: list[PartialArticle] = []
+
+    for article in from_articles:
+        if article.url not in urls_not_present:
+            to_articles.append(
+                PartialArticle.model_validate(
+                    article, context={"fields_to_validate": TEMPORARY_FIELDS}
+                )
+            )
+
+    logger.debug(f"Updating {len(to_articles)} articles")
+
+    to_client.update_documents(to_articles, TEMPORARY_FIELDS)

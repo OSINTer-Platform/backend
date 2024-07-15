@@ -160,10 +160,10 @@ def scrape_articles() -> None:
     filtered_article_url_collection: dict[str, list[str]] = {}
 
     for articles_source in article_url_collection:
-        filtered_article_url_collection[
-            articles_source
-        ] = config_options.es_article_client.filter_document_list(
-            article_url_collection[articles_source]
+        filtered_article_url_collection[articles_source] = (
+            config_options.es_article_client.filter_document_list(
+                article_url_collection[articles_source]
+            )
         )
 
     article_number_after_filter = sum(

@@ -23,7 +23,9 @@ console = Console()
 
 
 def get_profile_list() -> list[str]:
-    profile_list: list[str] = list_profiles(complete_file_name=True, include_disabled=True)
+    profile_list: list[str] = list_profiles(
+        complete_file_name=True, include_disabled=True
+    )
     profile_list.sort()
 
     return profile_list
