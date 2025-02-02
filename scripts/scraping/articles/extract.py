@@ -6,7 +6,7 @@ import re
 
 from bs4 import BeautifulSoup, Tag
 from bs4.element import ResultSet
-from pydantic import AwareDatetime, BaseModel
+from pydantic import AwareDatetime, BaseModel, PastDatetime
 
 from modules.profiles import ArticleContent, ArticleMeta, ElementSelector
 
@@ -22,7 +22,7 @@ class OGTags(BaseModel):
     title: str
     description: str
     image_url: str
-    publish_date: Annotated[datetime, AwareDatetime]
+    publish_date: Annotated[datetime, AwareDatetime, PastDatetime]
 
 
 def extract_article_content(
