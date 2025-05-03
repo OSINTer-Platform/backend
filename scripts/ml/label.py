@@ -1,9 +1,11 @@
+import random
 import logging
 import typer
 from rich.console import Console
 from modules.objects import FullArticle
 
 
+from modules.objects.articles import BaseArticle
 from scripts import config_options
 from modules.elastic import ArticleSearchQuery
 from scripts.elastic.utils import get_user_yes_no

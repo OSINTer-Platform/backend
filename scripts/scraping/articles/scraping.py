@@ -1,9 +1,10 @@
 import logging
 import os
-import random
 import time
 import re
 from typing import Any, cast
+
+from fake_useragent import UserAgent
 
 from bs4 import BeautifulSoup, element
 import feedparser  # type: ignore
@@ -14,39 +15,6 @@ from selenium.webdriver.firefox.options import Options
 from modules.profiles import Profile
 
 logger = logging.getLogger("osinter")
-
-# Used for simulating an actual browser when scraping for OGTags, stolen from here
-browser_headers_list = [
-    # Firefox 77 Mac
-    {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:77.0) Gecko/20100101 Firefox/77.0",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-        "Referer": "https://www.google.com/",
-        "Connection": "keep-alive",
-    },
-    # Firefox 77 Windows
-    {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:77.0) Gecko/20100101 Firefox/77.0",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-        "Referer": "https://www.google.com/",
-    },
-    # Chrome 83 Mac
-    {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-        "Referer": "https://www.google.com/",
-        "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
-    },
-    # Chrome 83 Windows
-    {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-        "Referer": "https://www.google.com/",
-        "Accept-Language": "en-US,en;q=0.9",
-    },
-]
 
 
 def check_if_valid_url(url: str) -> bool:
@@ -66,8 +34,16 @@ def cat_url(root_url: str, relative_path: str) -> str:
 
 # Simple function for scraping static page and converting it to a soup
 def scrape_web_soup(url: str) -> BeautifulSoup | None:
-    current_headers: dict[str, str] = random.choice(browser_headers_list)
-    page_source: requests.models.Response = requests.get(url, headers=current_headers)
+    ua = UserAgent(os="Windows", platforms="desktop", min_version=120.0)
+    headers = {
+        "User-Agent": ua.random,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Referer": "https://www.google.com/",
+        "Connection": "keep-alive",
+    }
+
+    page_source: requests.models.Response = requests.get(url, headers=headers)
 
     if page_source.status_code != 200:
         logger.error(f"Status code {page_source.status_code}, skipping URL {url}")
