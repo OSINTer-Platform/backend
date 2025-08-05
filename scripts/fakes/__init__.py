@@ -68,8 +68,8 @@ def gen_image(prompt: str, img_name: str) -> None:
         f.write(b64decode(b64))
 
 
-def load_fakes(path: str) -> list[list[FakeFile]]:
-    def load(file_path: str) -> FakeFile:
+def load_fakes(path: str) -> list[FakeFile]:
+    def load_file(file_path: str) -> FakeFile:
         f = frontmatter.load(file_path)
         meta = cast(dict[str, str], f.metadata)
         return {
@@ -82,16 +82,22 @@ def load_fakes(path: str) -> list[list[FakeFile]]:
             "file_path": file_path,
         }
 
+    def load_dir(path: str) -> list[FakeFile]:
+        files: list[FakeFile] = []
+
+        for file in glob.glob(os.path.join(path, "*")):
+            if os.path.isdir(file):
+                files.extend(load_dir(file))
+            elif file.endswith(".md"):
+                files.append(load_file(file))
+
+        return files
+
     if path.endswith(".md"):
-        return [[load(path)]]
+        return [load_file(path)]
 
-    fakes: list[list[FakeFile]] = []
-    for dir in glob.glob(os.path.join(path, "*")):
-        fakes.append([])
-        for file_path in glob.glob(os.path.join(dir, "*")):
-            fakes[-1].append(load(file_path))
+    return load_dir(path)
 
-    return fakes
 
 
 def create_fake_image(fake: FakeFile, root_url: str) -> None:
@@ -167,16 +173,8 @@ def upload_fakes(path: str, day_span: int = 60) -> None:
     logger.info("Loading fakes")
     fakes = load_fakes(path)
 
-    fake_articles: list[FullArticle] = []
-
     logger.info("Creating article objects")
-    for fake_collection in fakes:
-        collection_start = random_date(start_date, stop_date)
-        collection_stop = collection_start + timedelta(days=7)
-
-        fake_articles.extend(
-            create_fakes(fake_collection, collection_start, collection_stop)
-        )
+    fake_articles: list[FullArticle] = create_fakes(fakes, start_date, stop_date)
 
     logger.info(f"Saving {len(fake_articles)} fake articles")
     config_options.es_article_client.save_documents(fake_articles)
@@ -187,7 +185,7 @@ def delete_fakes(path: str) -> None:
     logger.info("Loading fakes and generating ids")
     fakes = load_fakes(path)
     ids = {
-        gen_es_id(fake["id"]) for fake_collection in fakes for fake in fake_collection
+        gen_es_id(fake["id"]) for fake in fakes
     }
 
     logger.info(f"Removing {len(ids)} fakes")
@@ -199,7 +197,6 @@ def generate_imgs(path: str, root_url: str) -> None:
     logger.info("Loading fakes")
     fakes = load_fakes(path)
 
-    for i, fake_collection in enumerate(fakes):
+    for i, fake in enumerate(fakes):
         logger.info(f"Processing batch {i} out of {len(fakes)}")
-        for fake in fake_collection:
-            create_fake_image(fake, root_url)
+        create_fake_image(fake, root_url)
