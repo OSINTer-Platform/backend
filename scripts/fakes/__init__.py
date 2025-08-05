@@ -8,7 +8,10 @@ from typing import Sequence, TypedDict, cast
 
 from modules.objects import FullArticle
 from modules.misc import create_folder
+from modules.profiles import get_profiles
 from scripts import config_options
+
+import random
 
 from hashlib import md5
 import logging
@@ -23,14 +26,16 @@ logger = logging.getLogger("osinter")
 openai_client = OpenAI(api_key=config_options.OPENAI_KEY)
 
 
-class FakeContents(TypedDict):
+class FakeMetadata(TypedDict):
     id: str
     title: str
     description: str
     source: str
-    content: str
     image: str | None
 
+
+class FakeContents(FakeMetadata):
+    content: str
 
 class FakeFile(FakeContents):
     file_path: str
@@ -98,7 +103,26 @@ def load_fakes(path: str) -> list[FakeFile]:
 
     return load_dir(path)
 
+def load_fake_content(path: str) -> list[tuple[str, str]]:
+    def load_dir(path: str) -> list[tuple[str, str]]:
+        contents: list[tuple[str, str]] = []
 
+        for file in glob.glob(os.path.join(path, "*")):
+            if os.path.isdir(file):
+                contents.extend(load_dir(file))
+
+            elif file.endswith(".md"):
+                with open(file, "r") as f:
+                    contents.append((file, f.read()))
+
+        return contents
+
+
+    if path.endswith(".md"):
+        with open(path, "r") as f:
+            return [(path, f.read())]
+
+    return load_dir(path)
 
 def create_fake_image(fake: FakeFile, root_url: str) -> None:
     es_id = gen_es_id(fake["id"])
@@ -200,3 +224,41 @@ def generate_imgs(path: str, root_url: str) -> None:
     for i, fake in enumerate(fakes):
         logger.info(f"Processing batch {i} out of {len(fakes)}")
         create_fake_image(fake, root_url)
+
+@app.command()
+def fill_in_fakes(path: str, profile_path: str) -> None:
+    fake_files = load_fake_content(path)
+    profiles = get_profiles(path=profile_path)
+
+    frontmatter_handler = frontmatter.YAMLHandler()
+
+    for i, file in enumerate(fake_files):
+        print(f"Handling fake nr {i + 1} out of {len(fake_files)}")
+        profile = random.choice(profiles)
+
+        filepath = file[0]
+        content = file[1]
+
+        description = openai_client.chat.completions.create(
+            model=config_options.OPENAI_MODEL,
+            messages=[
+                {"role": "user", "content": "Please summarize the following news in two sentences and say nothing else"},
+                {"role": "user", "content": content}
+            ]
+        ).choices[0].message.content
+
+        if description is None:
+            raise Exception("Empty description from OpenAI")
+
+        fake_metadata: FakeMetadata= {
+            "id": gen_es_id(content[1]),
+            "title": os.path.splitext(os.path.basename(filepath))[0],
+            "description": description,
+            "source": profile.source.name,
+            "image": None,
+        }
+
+        fake = frontmatter.Post(content=content, handler=frontmatter_handler, **fake_metadata)
+
+        with open(filepath, "w") as f:
+            frontmatter.dump(fake, f)
