@@ -23,17 +23,13 @@ logger = logging.getLogger("osinter")
 
 
 class custom_md_converter(MarkdownConverter):  # type: ignore
-    def convert_figure(self, el: Any, text: str, _: bool) -> str:
-        self.process_tag(el, False, children_only=True)
-        return text + "\n\n"
-
-    def convert_a(self, el: Any, text: str, convert_as_inline: bool) -> str:
+    def convert_a(self, el: Any, text: str, parent_tags: object) -> str:
         try:
             del el["title"]
         except KeyError:
             pass
 
-        return cast(str, super().convert_a(el, text, convert_as_inline))
+        return cast(str, super().convert_a(el, text, parent_tags))
 
 
 def gather_profile_urls(
