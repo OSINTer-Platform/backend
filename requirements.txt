@@ -4,7 +4,7 @@ beautifulsoup4
 selenium
 markdownify
 dateparser
-elasticsearch
+elasticsearch==8.*
 pydantic
 typer
 Rich
